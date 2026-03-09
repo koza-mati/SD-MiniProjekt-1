@@ -5,7 +5,7 @@ int menu() {
     std::cout << "1. Tablica dynamiczna" << std::endl;
     std::cout << "2. Lista jednokierunkowa" << std::endl;
     std::cout << "3. Lista dwukierunkowa" << std::endl;
-    std::cout << "4. Exit" << std::endl;
+    std::cout << "4. Wyjście" << std::endl;
 
     int choice;
     std::cin >> choice;
