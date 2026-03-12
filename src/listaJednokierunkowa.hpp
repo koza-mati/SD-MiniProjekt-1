@@ -1,7 +1,7 @@
 #include <iostream>
 
 struct Node{
-    int element; // zmienna przechowująca wartość elementu
+    int date; // zmienna przechowująca wartość elementu
     Node* next; // wskaźnik na następny element listy
 };
 
