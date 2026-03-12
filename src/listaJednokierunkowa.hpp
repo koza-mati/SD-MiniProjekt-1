@@ -3,7 +3,7 @@
 #define LISTAJEDNOKIER.HPP
 
 struct Node{
-    int date; // zmienna przechowująca wartość elementu
+    int data; // zmienna przechowująca wartość elementu
     Node* next; // wskaźnik na następny element listy
 };
 
