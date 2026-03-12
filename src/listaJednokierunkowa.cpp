@@ -18,7 +18,7 @@ bool listaJednokierunkowa::isEmpty() const{
 // dodawanie na początku listy
 void listaJednokierunkowa::addToFront(const int& element) {
     Node* newNode = new Node; // dynamicznie alokujemy węzeł 
-    newNode -> date = element; // przypisujemy nowy element do wezła
+    newNode -> data = element; // przypisujemy nowy element do wezła
     newNode -> next = head; // ustawiamy następny element na nowy head lsity
     head = newNode; // przypisujemy nowy wezele jako aktualny head'a (w skrócie aktualziujemy head'a)
 
@@ -31,7 +31,7 @@ void listaJednokierunkowa::addToFront(const int& element) {
 // dodawanie na końcu listy
 void listaJednokierunkowa::addAtEnd(const int& element) {
     Node* new_Node = new Node;
-    new_Node -> date = element; // przypisujemy nowy element do węzła
+    new_Node -> data = element; // przypisujemy nowy element do węzła
     new_Node -> next = nullptr; // ustawaimy tail na nullptr 
 
     // sprawdzamy czy lista jest pusta
