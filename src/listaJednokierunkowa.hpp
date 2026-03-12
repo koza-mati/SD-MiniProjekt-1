@@ -1,4 +1,6 @@
 #include <iostream>
+#ifndef LISTAJEDNOKIER.HPP
+#define LISTAJEDNOKIER.HPP
 
 struct Node{
     int date; // zmienna przechowująca wartość elementu
@@ -21,3 +23,5 @@ class listaJednokierunkowa{
         void removeFromPosition(int position); // usuwa element z określonej pozycji
         bool isInList(const int& element) const; // sprawdza czy element znajduje się w liście
 };
+
+#endif // LISTAJEDNOKIER.HPP
