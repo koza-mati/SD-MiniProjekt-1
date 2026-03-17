@@ -28,8 +28,10 @@ public:
     void addToFront(const int& element); // dodaj na początek
     void addAtEnd(const int& element);   // dodaj na koniec
     void removeFromBegining();           // usuń z początku 
-    void removeFromEnd();                // usuń z końca                 // usuń z losowe miejsce
-    void addAtPosition();                    // dodaj losowe miejsce
+    void removeFromEnd();                // usuń z końca                 
+    void addAtPosition();                 // dodaj losowe miejsce
+    void removeFromPosition();             // usuń z losowe miejsce 
+    void listSearch();                     // wyszukiawnie elementu w liście
 };
 
 #endif // LISTA_JEDNOKIERUNKOWA_HPP
