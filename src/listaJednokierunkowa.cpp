@@ -83,7 +83,85 @@ void listaJednokierunkowa::removeFromEnd() {
     tail->next = nullptr;
 }
 
-// (TODO) dodawanie losowego elementu - uzupełnij co dokładnie ma robić ta funkcja
-void listaJednokierunkowa::addRandom() {
+// dodawanie elementu na określoną pozycję
+void listaJednokierunkowa::addAtPosition(const int& element, int position) {
 
+    // Jeżeli lista jest pusta to dodajemy pierwszy element
+    if(isEmpty() || position <= 0){
+        addToFront(element);
+        return;
+    }
+    // Szukamy miejsca do wstawienia: węzła "poprzedniego" względem pozycji
+    int idx = 0;
+    Node* prev = head;
+    while (prev->next != nullptr && idx < position - 1) {
+        prev = prev->next;
+        ++idx;
+    }
+    // Jeśli doszliśmy do końca zanim osiągnęliśmy (position - 1), to wstawiamy na koniec
+    if (prev->next == nullptr && idx < position - 1) {
+        addAtEnd(element);
+        return;
+    }
+    // Wstawienie nowego węzła "po prev"
+    Node* newNode = new Node;
+    newNode->data = element;
+    newNode->next = prev->next; //nullptr, gdy wstawiamy na końcu
+    prev->next = newNode;
+    // Jeżeli wstawiliśmy na sam koniec (prev był dawnym tail), to aktualizujemy tail
+    if (newNode->next == nullptr) {
+        tail = newNode;
+    }
 }
+
+// usuwanie elementu z okreslonej pozycji
+void listaJednokierunkowa::removeFromPosition(int position) {
+    if (isEmpty()) return;
+
+    if (position <= 0) {
+        removeFromBegining();
+        return;
+    }
+
+    // Szukamy węzła "poprzedniego" względem pozycji (ten, którego next będziemy usuwać)
+    int idx = 0;
+    Node* prev = head;
+
+    // prev->next != nullptr, bo chcemy mieć istniejący element do usunięcia
+    while (prev->next != nullptr && idx < position - 1) {
+        prev = prev->next;
+        ++idx;
+    }
+
+    // Jeśli prev->next to nullptr, to oznacza, że position wskazuje poza końcem
+    // -> usuwamy ostatni element
+    if (prev->next == nullptr) {
+        removeFromEnd();
+        return;
+    }
+
+    // Usuwamy element na pozycji
+    Node* toDelete = prev->next;
+    prev->next = toDelete->next;
+
+    // Jeśli usuwaliśmy ostatni element, aktualizujemy tail
+    if (prev->next == nullptr) {
+        tail = prev;
+    }
+
+    delete toDelete;
+}
+
+// wyszukiwanie elementu w liście, zwraca true, jeśli element występuje
+bool listaJednokierunkowa::listSearch(const int& element) const {
+    Node* current = head;
+    while (current != nullptr) {
+        if (current->data == element) {
+            return true;
+        }
+        current = current->next;
+    }
+    return false;
+}
+
+
