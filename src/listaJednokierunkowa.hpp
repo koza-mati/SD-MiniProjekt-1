@@ -29,9 +29,9 @@ public:
     void addAtEnd(const int& element);   // dodaj na koniec
     void removeFromBegining();           // usuń z początku 
     void removeFromEnd();                // usuń z końca                 
-    void addAtPosition();                 // dodaj losowe miejsce
-    void removeFromPosition();             // usuń z losowe miejsce 
-    void listSearch();                     // wyszukiawnie elementu w liście
+    void addAtPosition(const int& element, int position);                 // dodaj losowe miejsce
+    void removeFromPosition(int position);             // usuń z losowe miejsce 
+    bool listSearch(const int& element) const;                     // wyszukiawnie elementu w liście
 };
 
 #endif // LISTA_JEDNOKIERUNKOWA_HPP
