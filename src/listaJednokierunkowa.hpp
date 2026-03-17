@@ -2,9 +2,12 @@
 #ifndef LISTAJEDNOKIER.HPP
 #define LISTAJEDNOKIER.HPP
 
-struct Node{
+class Node{
+    private:
     int data; // zmienna przechowująca wartość elementu
     Node* next; // wskaźnik na następny element listy
+
+    friend class listaJednokierunkowa;
 };
 
 class listaJednokierunkowa{
