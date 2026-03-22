@@ -19,7 +19,10 @@ public:
     void addToFront(int element);
     void addAtEnd(int element);
     void addAtPosition(int element, int position);
+    
     void removeFromBegining();
     void removeFromEnd();
     void removeFromPosition(int position);
+
+    int find(int element) const;
 };

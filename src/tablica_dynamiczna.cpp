@@ -100,3 +100,11 @@ void tablicaDynamiczna::removeFromPosition(int position) {
 
     size_--;
 }
+
+int tablicaDynamiczna::find(int element) const {
+    for (int i = 0; i < size_; ++i)
+        if (data[i] == element)
+            return i;
+
+    return -1;
+}
