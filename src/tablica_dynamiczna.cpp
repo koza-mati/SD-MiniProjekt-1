@@ -20,3 +20,29 @@ void tablicaDynamiczna::grow() {
     data = newData;
     capacity_ = newCap;
 }
+
+bool tablicaDynamiczna::isEmpty() const {
+    return size_ == 0;
+}
+
+int tablicaDynamiczna::getSize() const {
+    return size_;
+}
+
+void tablicaDynamiczna::addToFront(int element) {
+    if (size_ >= capacity_)
+        grow();
+
+    for (int i = size_; i > 0; --i)
+        data[i] = data[i - 1];
+
+    data[0] = element;
+    size_++;
+}
+
+void tablicaDynamiczna::addAtEnd(int element) {
+    if (size_ >= capacity_)
+        grow();
+
+    data[size_++] = element;
+}
