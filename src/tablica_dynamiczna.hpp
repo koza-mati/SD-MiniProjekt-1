@@ -16,6 +16,7 @@ public:
 
     bool isEmpty() const;              // czy tablica pusta
     int getSize() const;               // liczba elementów
+    int getAt(int index) const; 
 
     void addToFront(int element);      // dodaj na początek
     void addAtEnd(int element);        // dodaj na koniec

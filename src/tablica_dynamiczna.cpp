@@ -36,6 +36,11 @@ int tablicaDynamiczna::getSize() const {
     return size_;
 }
 
+// zwracamy element na określonej pozycji
+int tablicaDynamiczna::getAt(int index) const {
+    return data[index];
+}
+
 // dodawanie na początku: ewentualny grow, przesunięcie w prawo, wstawienie na indeks 0
 void tablicaDynamiczna::addToFront(int element) {
     if (size_ >= capacity_) {
