@@ -46,3 +46,57 @@ void tablicaDynamiczna::addAtEnd(int element) {
 
     data[size_++] = element;
 }
+
+
+void tablicaDynamiczna::addAtPosition(int element, int position) {
+    if (position <= 0) {
+        addToFront(element);
+        return;
+    }
+    if (position >= size_) {
+        addAtEnd(element);
+        return;
+    }
+
+    if (size_ >= capacity_)
+        grow();
+
+    for (int i = size_; i > position; --i)
+        data[i] = data[i - 1];
+
+    data[position] = element;
+    size_++;
+}
+
+void tablicaDynamiczna::removeFromBeginning() {
+    if (isEmpty()) return;
+
+    for (int i = 0; i < size_ - 1; ++i)
+        data[i] = data[i + 1];
+
+    size_--;
+}
+
+void tablicaDynamiczna::removeFromEnd() {
+    if (!isEmpty())
+        size_--;
+}
+
+void tablicaDynamiczna::removeFromPosition(int position) {
+    if (isEmpty()) return;
+
+    if (position <= 0) {
+        removeFromBeginning();
+        return;
+    }
+
+    if (position >= size_ - 1) {
+        removeFromEnd();
+        return;
+    }
+
+    for (int i = position; i < size_ - 1; ++i)
+        data[i] = data[i + 1];
+
+    size_--;
+}
