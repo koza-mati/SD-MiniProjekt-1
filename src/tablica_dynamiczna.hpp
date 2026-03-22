@@ -22,7 +22,7 @@ public:
     void addAtEnd(int element);        // dodaj na koniec
     void addAtPosition(int element, int position); // dodaj na wybrane miejsce
 
-    void removeFromBegining();         // usuń z początku
+    void removeFromBeginning();         // usuń z początku
     void removeFromEnd();              // usuń z końca
     void removeFromPosition(int position); // usuń z wybranej pozycji
 

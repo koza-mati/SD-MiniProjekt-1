@@ -88,7 +88,7 @@ void tablicaDynamiczna::addAtPosition(int element, int position) {
 }
 
 // usuwanie z początku: przesunięcie w lewo o jeden indeks
-void tablicaDynamiczna::removeFromBegining() {
+    void tablicaDynamiczna::removeFromBeginning() {
     if (isEmpty()) {
         return;
     }
@@ -114,7 +114,7 @@ void tablicaDynamiczna::removeFromPosition(int position) {
     }
 
     if (position <= 0) {
-        removeFromBegining();
+        removeFromBeginning();
         return;
     }
 
