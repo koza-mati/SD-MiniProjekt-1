@@ -7,6 +7,8 @@ private:
     int size_;
     int capacity_;
 
+    void grow();
+
 public:
     explicit tablicaDynamiczna(int initialCapacity = 4);
     ~tablicaDynamiczna();
