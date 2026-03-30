@@ -5,14 +5,14 @@
 class tablicaDynamiczna {
 private:
     int* data;       // wskaźnik na bufor z elementami
-    int size_;       // aktualna liczba elementów w tablicy
-    int capacity_;   // pojemność bufora (rozmiar zaalokowanej tablicy)
+    int size;        // aktualna liczba elementów w tablicy
+    int capacity;    // pojemność bufora (rozmiar zaalokowanej tablicy)
 
     void grow();     // zwiększenie pojemności dwukrotnie, gdy brak miejsca
 
 public:
-    explicit tablicaDynamiczna(int initialCapacity = 4); // konstruktor
-    ~tablicaDynamiczna();                                // destruktor
+    tablicaDynamiczna();               // konstruktor
+    ~tablicaDynamiczna();              // destruktor
 
     bool isEmpty() const;              // czy tablica pusta
     int getSize() const;               // liczba elementów

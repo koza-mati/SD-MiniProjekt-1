@@ -1,10 +1,11 @@
 #include <iostream>
 #include "tablica_dynamiczna.hpp"
 
-// konstruktor: alokacja bufora o zadanej początkowej pojemności (min. 1)
-tablicaDynamiczna::tablicaDynamiczna(int initialCapacity)
-    : data(nullptr), size_(0), capacity_(initialCapacity <= 0 ? 1 : initialCapacity) {
-    data = new int[capacity_];
+// Konstruktor: inicjalizuje tablicę z początkowym rozmiarem
+tablicaDynamiczna::tablicaDynamiczna() {
+    size = 0;                   // Na początku struktura jest pusta
+    capacity = 1;                // Początkowa pojemność
+    data = new int[capacity];   // Dynamiczna alokacja tablicy
 }
 
 // destruktor: zwolnienie pamięci bufora
@@ -14,26 +15,26 @@ tablicaDynamiczna::~tablicaDynamiczna() {
 
 // podwajanie pojemności i kopiowanie starych elementów do nowego bufora
 void tablicaDynamiczna::grow() {
-    int newCap = capacity_ * 2;
+    int newCap = capacity * 2;
     int* newData = new int[newCap];
 
-    for (int i = 0; i < size_; ++i) {
+    for (int i = 0; i < size; ++i) {
         newData[i] = data[i];
     }
 
     delete[] data;
     data = newData;
-    capacity_ = newCap;
+    capacity = newCap;
 }
 
-// sprawdzamy czy tablica jest pusta (size_ == 0)
+// sprawdzamy czy tablica jest pusta (size == 0)
 bool tablicaDynamiczna::isEmpty() const {
-    return size_ == 0;
+    return size == 0;
 }
 
 // zwracamy aktualną liczbę elementów
 int tablicaDynamiczna::getSize() const {
-    return size_;
+    return size;
 }
 
 // zwracamy element na określonej pozycji
@@ -43,25 +44,25 @@ int tablicaDynamiczna::getAt(int index) const {
 
 // dodawanie na początku: ewentualny grow, przesunięcie w prawo, wstawienie na indeks 0
 void tablicaDynamiczna::addToFront(int element) {
-    if (size_ >= capacity_) {
+    if (size >= capacity) {
         grow();
     }
 
-    for (int i = size_; i > 0; --i) {
+    for (int i = size; i > 0; --i) {
         data[i] = data[i - 1];
     }
 
     data[0] = element;
-    size_++;
+    size++;
 }
 
 // dodawanie na końcu tablicy
 void tablicaDynamiczna::addAtEnd(int element) {
-    if (size_ >= capacity_) {
+    if (size >= capacity) {
         grow();
     }
 
-    data[size_++] = element;
+    data[size++] = element;
 }
 
 // dodawanie elementu na określoną pozycję (indeks); pozycja <= 0 -> początek, >= rozmiaru -> koniec
@@ -70,21 +71,21 @@ void tablicaDynamiczna::addAtPosition(int element, int position) {
         addToFront(element);
         return;
     }
-    if (position >= size_) {
+    if (position >= size) {
         addAtEnd(element);
         return;
     }
 
-    if (size_ >= capacity_) {
+    if (size >= capacity) {
         grow();
     }
 
-    for (int i = size_; i > position; --i) {
+    for (int i = size; i > position; --i) {
         data[i] = data[i - 1];
     }
 
     data[position] = element;
-    size_++;
+    size++;
 }
 
 // usuwanie z początku: przesunięcie w lewo o jeden indeks
@@ -93,17 +94,17 @@ void tablicaDynamiczna::addAtPosition(int element, int position) {
         return;
     }
 
-    for (int i = 0; i < size_ - 1; ++i) {
+    for (int i = 0; i < size - 1; ++i) {
         data[i] = data[i + 1];
     }
 
-    size_--;
+    size--;
 }
 
-// usuwanie ostatniego elementu (zmniejszenie size_)
+// usuwanie ostatniego elementu (zmniejszenie size)
 void tablicaDynamiczna::removeFromEnd() {
     if (!isEmpty()) {
-        size_--;
+        size--;
     }
 }
 
@@ -118,21 +119,21 @@ void tablicaDynamiczna::removeFromPosition(int position) {
         return;
     }
 
-    if (position >= size_ - 1) {
+    if (position >= size - 1) {
         removeFromEnd();
         return;
     }
 
-    for (int i = position; i < size_ - 1; ++i) {
+    for (int i = position; i < size - 1; ++i) {
         data[i] = data[i + 1];
     }
 
-    size_--;
+    size--;
 }
 
 // wyszukiwanie: zwraca indeks pierwszego wystąpienia lub -1, gdy nie ma elementu
 int tablicaDynamiczna::find(int element) const {
-    for (int i = 0; i < size_; ++i) {
+    for (int i = 0; i < size; ++i) {
         if (data[i] == element) {
             return i;
         }
