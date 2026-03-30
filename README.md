@@ -1,1 +1,1 @@
-### Struktury Danych Projekt 1
+### Struktury Danych - Miniprojekt 1
