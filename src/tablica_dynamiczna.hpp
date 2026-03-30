@@ -2,7 +2,7 @@
 #include <iostream>
 
 
-class tablicaDynamiczna {
+class DynamicArray {
 private:
     int* data;       // wskaźnik na bufor z elementami
     int size;        // aktualna liczba elementów w tablicy
@@ -11,8 +11,8 @@ private:
     void grow();     // zwiększenie pojemności dwukrotnie, gdy brak miejsca
 
 public:
-    tablicaDynamiczna();               // konstruktor
-    ~tablicaDynamiczna();              // destruktor
+    DynamicArray();               // konstruktor
+    ~DynamicArray();              // destruktor
 
     bool isEmpty() const;              // czy tablica pusta
     int getSize() const;               // liczba elementów
