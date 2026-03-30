@@ -21,7 +21,7 @@ g++ -std=c++17 -Wall -Wextra -o main.exe src\main.cpp src\menu.cpp src\tablica_d
 main.exe
 ```
 
-W konsoli pojawi się menu — wybierasz numer opcji i zatwierdzasz Enter.
+W konsoli pojawi się menu - wybierasz numer opcji i zatwierdzasz Enter.
 
 ---
 
@@ -70,4 +70,4 @@ Implementacja listy jednokierunkowej. W nagłówku zdefiniowany jest typ `Node` 
 
 **Uwagi**
 
-- W menu głównym jest pozycja listy dwukierunkowej — na razie to tylko komunikat tekstowy; osobnych plików `lista_dwukierunkowa.*` jeszcze nie ma.
+- W menu głównym jest pozycja listy dwukierunkowej - na razie to tylko komunikat tekstowy; osobnych plików `lista_dwukierunkowa.*` jeszcze nie ma.
