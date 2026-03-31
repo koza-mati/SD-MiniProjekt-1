@@ -1,4 +1,3 @@
-#pragma once
 #ifndef DOUBLY_LINKED_LIST_HPP
 #define DOUBLY_LINKED_LIST_HPP
 
