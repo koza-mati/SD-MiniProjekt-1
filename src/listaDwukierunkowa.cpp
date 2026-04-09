@@ -1,6 +1,8 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <random>
+#include <sstream>
 #include "listaDwukierunkowa.hpp"
 
 // ===== Node =====
@@ -179,4 +181,51 @@ void DoublyLinkedList::saveToCSV(const std::string& filename) const {
     }
 
     file.close();
+}
+
+// wczytanie zawartości z pliku CSV
+void DoublyLinkedList::loadFromFile(const std::string& filename) {
+    // Wyczyszczenie obecnych danych
+    while (!isEmpty()) {
+        removeFront();
+    }
+
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Blad otwarcia pliku: " << filename << std::endl;
+        return;
+    }
+
+    std::string line;
+    std::getline(file, line); // Pominiecie nagłówka
+
+    while (std::getline(file, line)) {
+        std::stringstream ss(line);
+        std::string indexStr, valueStr;
+        std::getline(ss, indexStr, ',');
+        std::getline(ss, valueStr, ',');
+
+        int value = std::stoi(valueStr);
+        addBack(value);
+    }
+
+    file.close();
+    std::cout << "Lista dwukierunkowa zostala wczytana z pliku: " << filename << std::endl;
+}
+
+// generowanie losowej struktury o podanym rozmiarze
+void DoublyLinkedList::generateRandom(int size) {
+    // Wyczyszczenie obecnych danych
+    while (!isEmpty()) {
+        removeFront();
+    }
+
+    std::mt19937 gen(12345); // Stały seed dla powtarzalności
+    std::uniform_int_distribution<> dis(1, 1000000);
+
+    for (int i = 0; i < size; ++i) {
+        int value = dis(gen);
+        addBack(value);
+    }
+    std::cout << "Wygenerowano losowa liste dwukierunkowa o rozmiarze: " << size << std::endl;
 }
