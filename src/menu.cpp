@@ -11,6 +11,21 @@
 #include "listaJednokierunkowa.hpp"
 #include "listaDwukierunkowa.hpp"
 
+static unsigned int benchmarkSeed(int size, int attempt) {
+    return 123456u + static_cast<unsigned int>(size) * 7919u + static_cast<unsigned int>(attempt) * 131u;
+}
+
+static std::vector<int> generateBenchmarkData(int size, int operations, unsigned int seed) {
+    std::mt19937 gen(seed);
+    std::uniform_int_distribution<> dis(1, 100000000);
+    std::vector<int> data;
+    data.reserve(size + operations);
+    for (int i = 0; i < size + operations; ++i) {
+        data.push_back(dis(gen));
+    }
+    return data;
+}
+
 void menuTablicaDynamiczna() {
     DynamicArray tablica;
     int choice, element, position;
@@ -360,9 +375,6 @@ void benchmarkDynamicArray(const std::string& resultsFile) {
     std::vector<int> sizes = {5000, 8000, 10000, 16000, 20000, 40000, 60000, 100000};
     const int attempts = 3;
     const int operations = 500;
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dis(1, 100000000);
 
     for (int size : sizes) {
         std::cout << "Testowanie tablicy dynamicznej, rozmiar: " << size << std::endl;
@@ -376,11 +388,8 @@ void benchmarkDynamicArray(const std::string& resultsFile) {
         long long sumRemoveFromPosition = 0;
 
         for (int attempt = 0; attempt < attempts; ++attempt) {
-            std::vector<int> testData;
-            testData.reserve(size + operations);
-            for (int i = 0; i < size + operations; ++i) {
-                testData.push_back(dis(gen));
-            }
+            auto testData = generateBenchmarkData(size, operations, benchmarkSeed(size, attempt));
+            std::mt19937 rng(benchmarkSeed(size, attempt) + 1);
 
             {
                 DynamicArray arr;
@@ -415,7 +424,7 @@ void benchmarkDynamicArray(const std::string& resultsFile) {
                 }
                 auto start = std::chrono::high_resolution_clock::now();
                 for (int i = 0; i < operations; ++i) {
-                    arr.find(testData[std::uniform_int_distribution<>(0, size - 1)(gen)]);
+                    arr.find(testData[std::uniform_int_distribution<>(0, size - 1)(rng)]);
                 }
                 auto end = std::chrono::high_resolution_clock::now();
                 sumFind += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / operations;
@@ -428,7 +437,7 @@ void benchmarkDynamicArray(const std::string& resultsFile) {
                 }
                 auto start = std::chrono::high_resolution_clock::now();
                 for (int i = 0; i < operations; ++i) {
-                    int pos = std::uniform_int_distribution<>(0, arr.getSize())(gen);
+                    int pos = std::uniform_int_distribution<>(0, arr.getSize())(rng);
                     arr.addAtPosition(testData[size + i], pos);
                 }
                 auto end = std::chrono::high_resolution_clock::now();
@@ -468,7 +477,7 @@ void benchmarkDynamicArray(const std::string& resultsFile) {
                 }
                 auto start = std::chrono::high_resolution_clock::now();
                 for (int i = 0; i < operations; ++i) {
-                    int pos = std::uniform_int_distribution<>(0, arr.getSize() - 1)(gen);
+                    int pos = std::uniform_int_distribution<>(0, arr.getSize() - 1)(rng);
                     arr.removeFromPosition(pos);
                 }
                 auto end = std::chrono::high_resolution_clock::now();
@@ -499,9 +508,6 @@ void benchmarkListaJednokierunkowa(const std::string& resultsFile) {
     std::vector<int> sizes = {5000, 8000, 10000, 16000, 20000, 40000, 60000, 100000};
     const int attempts = 3;
     const int operations = 500;
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dis(1, 100000000);
 
     for (int size : sizes) {
         std::cout << "Testowanie listy jednokierunkowej, rozmiar: " << size << std::endl;
@@ -515,11 +521,8 @@ void benchmarkListaJednokierunkowa(const std::string& resultsFile) {
         long long sumRemoveFromPosition = 0;
 
         for (int attempt = 0; attempt < attempts; ++attempt) {
-            std::vector<int> testData;
-            testData.reserve(size + operations);
-            for (int i = 0; i < size + operations; ++i) {
-                testData.push_back(dis(gen));
-            }
+            auto testData = generateBenchmarkData(size, operations, benchmarkSeed(size, attempt));
+            std::mt19937 rng(benchmarkSeed(size, attempt) + 1);
 
             {
                 listaJednokierunkowa lista;
@@ -554,7 +557,7 @@ void benchmarkListaJednokierunkowa(const std::string& resultsFile) {
                 }
                 auto start = std::chrono::high_resolution_clock::now();
                 for (int i = 0; i < operations; ++i) {
-                    int pos = std::uniform_int_distribution<>(0, size)(gen);
+                    int pos = std::uniform_int_distribution<>(0, size)(rng);
                     lista.addAtPosition(testData[size + i], pos);
                 }
                 auto end = std::chrono::high_resolution_clock::now();
@@ -568,7 +571,7 @@ void benchmarkListaJednokierunkowa(const std::string& resultsFile) {
                 }
                 auto start = std::chrono::high_resolution_clock::now();
                 for (int i = 0; i < operations; ++i) {
-                    lista.listSearch(testData[std::uniform_int_distribution<>(0, size - 1)(gen)]);
+                    lista.listSearch(testData[std::uniform_int_distribution<>(0, size - 1)(rng)]);
                 }
                 auto end = std::chrono::high_resolution_clock::now();
                 sumFind += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / operations;
@@ -607,7 +610,7 @@ void benchmarkListaJednokierunkowa(const std::string& resultsFile) {
                 }
                 auto start = std::chrono::high_resolution_clock::now();
                 for (int i = 0; i < operations; ++i) {
-                    int pos = std::uniform_int_distribution<>(0, size - 1)(gen);
+                    int pos = std::uniform_int_distribution<>(0, size - 1)(rng);
                     lista.removeFromPosition(pos);
                 }
                 auto end = std::chrono::high_resolution_clock::now();
@@ -638,9 +641,6 @@ void benchmarkListaDwukierunkowa(const std::string& resultsFile) {
     std::vector<int> sizes = {5000, 8000, 10000, 16000, 20000, 40000, 60000, 100000};
     const int attempts = 3;
     const int operations = 500;
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dis(1, 100000000);
 
     for (int size : sizes) {
         std::cout << "Testowanie listy dwukierunkowej, rozmiar: " << size << std::endl;
@@ -654,11 +654,8 @@ void benchmarkListaDwukierunkowa(const std::string& resultsFile) {
         long long sumRemoveAt = 0;
 
         for (int attempt = 0; attempt < attempts; ++attempt) {
-            std::vector<int> testData;
-            testData.reserve(size + operations);
-            for (int i = 0; i < size + operations; ++i) {
-                testData.push_back(dis(gen));
-            }
+            auto testData = generateBenchmarkData(size, operations, benchmarkSeed(size, attempt));
+            std::mt19937 rng(benchmarkSeed(size, attempt) + 1);
 
             {
                 DoublyLinkedList lista;
@@ -693,7 +690,7 @@ void benchmarkListaDwukierunkowa(const std::string& resultsFile) {
                 }
                 auto start = std::chrono::high_resolution_clock::now();
                 for (int i = 0; i < operations; ++i) {
-                    int pos = std::uniform_int_distribution<>(0, size)(gen);
+                    int pos = std::uniform_int_distribution<>(0, size)(rng);
                     lista.insertAt(pos, testData[size + i]);
                 }
                 auto end = std::chrono::high_resolution_clock::now();
@@ -707,7 +704,7 @@ void benchmarkListaDwukierunkowa(const std::string& resultsFile) {
                 }
                 auto start = std::chrono::high_resolution_clock::now();
                 for (int i = 0; i < operations; ++i) {
-                    lista.find(testData[std::uniform_int_distribution<>(0, size - 1)(gen)]);
+                    lista.find(testData[std::uniform_int_distribution<>(0, size - 1)(rng)]);
                 }
                 auto end = std::chrono::high_resolution_clock::now();
                 sumFind += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / operations;
@@ -746,7 +743,7 @@ void benchmarkListaDwukierunkowa(const std::string& resultsFile) {
                 }
                 auto start = std::chrono::high_resolution_clock::now();
                 for (int i = 0; i < operations; ++i) {
-                    int pos = std::uniform_int_distribution<>(0, size - 1)(gen);
+                    int pos = std::uniform_int_distribution<>(0, size - 1)(rng);
                     lista.removeAt(pos);
                 }
                 auto end = std::chrono::high_resolution_clock::now();

@@ -12,7 +12,7 @@ W terminalu, w katalogu głównym projektu:
 1. Zbuduj program:
 
 ```bat
-g++ -std=c++17 -Wall -Wextra -o main.exe src\main.cpp src\menu.cpp src\tablica_dynamiczna.cpp src\listaJednokierunkowa.cpp
+g++ -std=c++17 -Wall -Wextra -o main.exe src\main.cpp src\menu.cpp src\tablica_dynamiczna.cpp src\listaJednokierunkowa.cpp src\listaDwukierunkowa.cpp
 ```
 
 2. Uruchom:
@@ -104,16 +104,18 @@ Program zawiera automatyczne testy wydajnościowe, dostępne w menu głównym po
 1. W folderze głównym projektu skompiluj aplikację z plikiem źródłowym `src/main.cpp` i pozostałymi modułami:
 
 ```bat
-g++ -std=c++17 -Wall -Wextra -o benchmark src\main.cpp src\menu.cpp src\tablica_dynamiczna.cpp src\listaJednokierunkowa.cpp src\listaDwukierunkowa.cpp
+g++ -std=c++17 -Wall -Wextra -o main.exe src\main.cpp src\menu.cpp src\tablica_dynamiczna.cpp src\listaJednokierunkowa.cpp src\listaDwukierunkowa.cpp
 ```
 
 2. Uruchom testy bezpośrednio:
 
 ```bat
-src\benchmark.exe --benchmarks
+main.exe --benchmarks
 ```
 
 3. Alternatywnie uruchom program normalnie i wybierz opcję `4. Badania wydajnościowe` w menu głównym.
+
+> Dla każdego rozmiaru i próby benchmarki używają ustalonego, deterministycznego seeda, więc porównywane struktury korzystają z tej samej sekwencji danych wejściowych.
 
 4. Po zakończeniu testów wyniki pojawią się w katalogu głównym projektu w plikach:
 - `benchmark_tablica_dynamiczna.csv`
