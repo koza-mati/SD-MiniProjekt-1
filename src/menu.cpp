@@ -16,12 +16,12 @@ static unsigned int benchmarkSeed(int size, int attempt) {
     return 123456u + static_cast<unsigned int>(size) * 7919u + static_cast<unsigned int>(attempt) * 131u;
 }
 
-static std::vector<int> generateBenchmarkData(int size, int operations, unsigned int seed) {
+static std::vector<int> generateBenchmarkData(int size, int operations, int warmupOps, unsigned int seed) {
     std::mt19937 gen(seed);
     std::uniform_int_distribution<> dis(1, 100000000);
     std::vector<int> data;
-    data.reserve(size + operations);
-    for (int i = 0; i < size + operations; ++i) {
+    data.reserve(size + operations + warmupOps);
+    for (int i = 0; i < size + operations + warmupOps; ++i) {
         data.push_back(dis(gen));
     }
     return data;
@@ -428,8 +428,9 @@ void benchmarkDynamicArray(const std::string& resultsFile) {
 
     file << "Operation,Size,AverageTime_ns\n";
     std::vector<int> sizes = {5000, 8000, 10000, 16000, 20000, 40000, 60000, 100000};
-    const int attempts = 3;
-    const int operations = 500;
+    const int attempts = 5;
+    const int operations = 1000;
+    const int warmupOps = 100;
 
     for (int size : sizes) {
         std::cout << "Testowanie tablicy dynamicznej, rozmiar: " << size << std::endl;
@@ -443,7 +444,7 @@ void benchmarkDynamicArray(const std::string& resultsFile) {
         long long sumRemoveFromPosition = 0;
 
         for (int attempt = 0; attempt < attempts; ++attempt) {
-            auto testData = generateBenchmarkData(size, operations, benchmarkSeed(size, attempt));
+            auto testData = generateBenchmarkData(size, operations, warmupOps, benchmarkSeed(size, attempt));
             std::mt19937 rng(benchmarkSeed(size, attempt) + 1);
 
             {
@@ -451,9 +452,13 @@ void benchmarkDynamicArray(const std::string& resultsFile) {
                 for (int i = 0; i < size; ++i) {
                     arr.addAtEnd(testData[i]);
                 }
+                // Warmup - cache heating
+                for (int i = 0; i < warmupOps; ++i) {
+                    arr.addAtEnd(testData[size + (i % operations)]);
+                }
                 auto start = std::chrono::high_resolution_clock::now();
                 for (int i = 0; i < operations; ++i) {
-                    arr.addAtEnd(testData[size + i]);
+                    arr.addAtEnd(testData[size + warmupOps + i]);
                 }
                 auto end = std::chrono::high_resolution_clock::now();
                 sumAddAtEnd += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / operations;
@@ -561,8 +566,9 @@ void benchmarkListaJednokierunkowa(const std::string& resultsFile) {
 
     file << "Operation,Size,AverageTime_ns\n";
     std::vector<int> sizes = {5000, 8000, 10000, 16000, 20000, 40000, 60000, 100000};
-    const int attempts = 3;
-    const int operations = 500;
+    const int attempts = 5;
+    const int operations = 1000;
+    const int warmupOps = 100;
 
     for (int size : sizes) {
         std::cout << "Testowanie listy jednokierunkowej, rozmiar: " << size << std::endl;
@@ -576,7 +582,7 @@ void benchmarkListaJednokierunkowa(const std::string& resultsFile) {
         long long sumRemoveFromPosition = 0;
 
         for (int attempt = 0; attempt < attempts; ++attempt) {
-            auto testData = generateBenchmarkData(size, operations, benchmarkSeed(size, attempt));
+            auto testData = generateBenchmarkData(size, operations, warmupOps, benchmarkSeed(size, attempt));
             std::mt19937 rng(benchmarkSeed(size, attempt) + 1);
 
             {
@@ -584,9 +590,13 @@ void benchmarkListaJednokierunkowa(const std::string& resultsFile) {
                 for (int i = 0; i < size; ++i) {
                     lista.addAtEnd(testData[i]);
                 }
+                // Warmup - cache heating
+                for (int i = 0; i < warmupOps; ++i) {
+                    lista.addAtEnd(testData[size + (i % operations)]);
+                }
                 auto start = std::chrono::high_resolution_clock::now();
                 for (int i = 0; i < operations; ++i) {
-                    lista.addAtEnd(testData[size + i]);
+                    lista.addAtEnd(testData[size + warmupOps + i]);
                 }
                 auto end = std::chrono::high_resolution_clock::now();
                 sumAddAtEnd += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / operations;
@@ -694,8 +704,9 @@ void benchmarkListaDwukierunkowa(const std::string& resultsFile) {
 
     file << "Operation,Size,AverageTime_ns\n";
     std::vector<int> sizes = {5000, 8000, 10000, 16000, 20000, 40000, 60000, 100000};
-    const int attempts = 3;
-    const int operations = 500;
+    const int attempts = 5;
+    const int operations = 1000;
+    const int warmupOps = 100;
 
     for (int size : sizes) {
         std::cout << "Testowanie listy dwukierunkowej, rozmiar: " << size << std::endl;
@@ -709,7 +720,7 @@ void benchmarkListaDwukierunkowa(const std::string& resultsFile) {
         long long sumRemoveAt = 0;
 
         for (int attempt = 0; attempt < attempts; ++attempt) {
-            auto testData = generateBenchmarkData(size, operations, benchmarkSeed(size, attempt));
+            auto testData = generateBenchmarkData(size, operations, warmupOps, benchmarkSeed(size, attempt));
             std::mt19937 rng(benchmarkSeed(size, attempt) + 1);
 
             {
@@ -717,9 +728,13 @@ void benchmarkListaDwukierunkowa(const std::string& resultsFile) {
                 for (int i = 0; i < size; ++i) {
                     lista.addBack(testData[i]);
                 }
+                // Warmup - cache heating
+                for (int i = 0; i < warmupOps; ++i) {
+                    lista.addBack(testData[size + (i % operations)]);
+                }
                 auto start = std::chrono::high_resolution_clock::now();
                 for (int i = 0; i < operations; ++i) {
-                    lista.addBack(testData[size + i]);
+                    lista.addBack(testData[size + warmupOps + i]);
                 }
                 auto end = std::chrono::high_resolution_clock::now();
                 sumAddBack += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / operations;
