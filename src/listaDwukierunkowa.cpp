@@ -1,10 +1,14 @@
 #include <iostream>
+#include <fstream>
+#include <string>
+#include <random>
+#include <sstream>
 #include "listaDwukierunkowa.hpp"
 
 // ===== Node =====
 // Ustawiamy wartosci poczatkowe naszej listy dwukierunkowej
 
-Node::Node(int val) {
+DNode::DNode(int val) {
     value = val;
     prev = 0;
     next = 0;
@@ -18,9 +22,9 @@ DoublyLinkedList::DoublyLinkedList() { // konstruktor domyslny
 }
 
 DoublyLinkedList::~DoublyLinkedList() { //destruktor
-    Node* cur = head; // zaczynamy od pierwszeg wezla
+    DNode* cur = head; // zaczynamy od pierwszeg wezla
     while (cur != 0) { // while sa wezly
-        Node* nxt = cur->next; // zapamietujemy adres nastepnego wezla
+        DNode* nxt = cur->next; // zapamietujemy adres nastepnego wezla
         delete cur; // usuwamy akutalny wezel z pamieci
         cur = nxt; // przechodzimy do nastepnego
     }
@@ -28,9 +32,9 @@ DoublyLinkedList::~DoublyLinkedList() { //destruktor
     tail = 0; // cyscimy wskazniki koncowe
 }
 
-Node* DoublyLinkedList::nodeAt(int index) {
+DNode* DoublyLinkedList::nodeAt(int index) {
     if (index < 0) return 0; // jesli index jest mniejszy od zera zwraca 0
-    Node* cur = head; // zaczynamy od head'a
+    DNode* cur = head; // zaczynamy od head'a
     for (int i = 0; cur != 0 && i < index; ++i) { // przechodzimy do nastepnych indexów
         cur = cur->next; // idziemy do przodu
     }
@@ -38,7 +42,7 @@ Node* DoublyLinkedList::nodeAt(int index) {
 }
 
 void DoublyLinkedList::addFront(int value) {
-    Node* n = new Node(value); // dynamiczna alokacja wezla 
+    DNode* n = new DNode(value); // dynamiczna alokacja wezla 
     n->prev = 0; // poprzedni element to 0 bo brak poprzednika
     n->next = head; // wskazuje na dotychczasowy head jezeli lista nie bedzie pusta
 
@@ -54,7 +58,7 @@ void DoublyLinkedList::addFront(int value) {
 void DoublyLinkedList::removeFront() {
     if (head == 0) return; // sprawdzenie czy lista jest pusta
 
-    Node* old = head; // zapamieyujemy starego head'a
+    DNode* old = head; // zapamieyujemy starego head'a
     head = head->next; // przesuwamy head'a na nastepny element
     if (head != 0) { // jesli lista ma nadal element to prev musi byc wyzerowane
         head->prev = 0;
@@ -66,7 +70,7 @@ void DoublyLinkedList::removeFront() {
 }
 
 void DoublyLinkedList::addBack(int value) {
-    Node* n = new Node(value); // alokujemy dynamicznie nowy wezel
+    DNode* n = new DNode(value); // alokujemy dynamicznie nowy wezel
     n->next = 0; // wstawiamy na koniec wiec next musi byc 0
     n->prev = tail;
 
@@ -82,7 +86,7 @@ void DoublyLinkedList::addBack(int value) {
 void DoublyLinkedList::removeBack() {
     if (tail == 0) return; // sprawdzamy czy lista jest pusta
 
-    Node* old = tail; // zapamietujemy wsk starego taila
+    DNode* old = tail; // zapamietujemy wsk starego taila
     tail = tail->prev; // przesuwamy taila na poprzedni element
     if (tail != 0) { // lista nie byla pusta
         tail->next = 0; // 
@@ -101,7 +105,7 @@ void DoublyLinkedList::insertAt(int index, int value) {
     }
 
     // Szukamy węzeła o danym indeksie
-    Node* where = nodeAt(index);
+    DNode* where = nodeAt(index);
 
     if (where == 0) {
         // Jeżeli index poza końcem wstawiamy na koniec
@@ -110,7 +114,7 @@ void DoublyLinkedList::insertAt(int index, int value) {
     }
 
     // Wstaw PRZED where
-    Node* n = new Node(value);
+    DNode* n = new DNode(value);
     n->next = where; // nowy wskazuje na przód na where
     n->prev = where->prev; // i wstecz na poprzednika where
 
@@ -127,7 +131,7 @@ void DoublyLinkedList::insertAt(int index, int value) {
 void DoublyLinkedList::removeAt(int index) {  
     if (index < 0 || head == 0) return; // Jeżeli indeks ujemny albo lista pusta nic nie zwracamy
 
-    Node* target = nodeAt(index); // Znajdujemy wskaźnik do węzła na pozycji 'index'
+    DNode* target = nodeAt(index); // Znajdujemy wskaźnik do węzła na pozycji 'index'
     if (target == 0) return; // Jeżeli jest poza zakresem lub brak takiego węzła, nic nie zwracamy
 
     if (target->prev != 0) { // Jeżeli węzeł ma poprzednika (nie jest head)
@@ -146,12 +150,82 @@ void DoublyLinkedList::removeAt(int index) {
 }
 
 int DoublyLinkedList::find(int value) { // Zwraca indeks pierwszego węzła o wartości 'value', albo -1 jeśli nie znaleziono
-    Node* cur = head;  // ustawiamy wskaźnik 'cur' na head listy
+    DNode* cur = head;  // ustawiamy wskaźnik 'cur' na head listy
     int idx = 0; // licznik indeksu bieżącego węzła, pierwszy element ma indeks 0
     while (cur != 0) { // dopóki nie dojdzeimy do końca listy 
         if (cur->value == value) return idx; // jeśli wartość w bieżącym węźle jest równa szukanej, zwróć bieżący indeks
         cur = cur->next; // przejdź do następnego węzła w liście
         idx++; // zwiększ indeks o jeden węzeł dalej
     }
-    return -1; // jeśli pętla zakończyła się lub nie znaleziono wartości to zwracamy -1   
+    return -1; // jeśli pętla zakończyła się lub nie znaleziono wartości to zwracamy -1
+}
+
+bool DoublyLinkedList::isEmpty() const {
+    return head == 0;
+}
+
+void DoublyLinkedList::saveToCSV(const std::string& filename) const {
+    std::ofstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Blad otwarcia pliku: " << filename << std::endl;
+        return;
+    }
+
+    file << "Index,Value\n";
+    DNode* cur = head;
+    int idx = 0;
+    while (cur != 0) {
+        file << idx << "," << cur->value << "\n";
+        cur = cur->next;
+        idx++;
+    }
+
+    file.close();
+}
+
+// wczytanie zawartości z pliku CSV
+void DoublyLinkedList::loadFromFile(const std::string& filename) {
+    // Wyczyszczenie obecnych danych
+    while (!isEmpty()) {
+        removeFront();
+    }
+
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Blad otwarcia pliku: " << filename << std::endl;
+        return;
+    }
+
+    std::string line;
+    std::getline(file, line); // Pominiecie nagłówka
+
+    while (std::getline(file, line)) {
+        std::stringstream ss(line);
+        std::string indexStr, valueStr;
+        std::getline(ss, indexStr, ',');
+        std::getline(ss, valueStr, ',');
+
+        int value = std::stoi(valueStr);
+        addBack(value);
+    }
+
+    file.close();
+    std::cout << "Lista dwukierunkowa zostala wczytana z pliku: " << filename << std::endl;
+}
+
+// generowanie losowej struktury o podanym rozmiarze
+void DoublyLinkedList::generateRandom(int size) {
+    // Wyczyszczenie obecnych danych
+    while (!isEmpty()) {
+        removeFront();
+    }
+
+    std::mt19937 gen(12345); // Stały seed dla powtarzalności
+    std::uniform_int_distribution<> dis(1, 1000000);
+
+    for (int i = 0; i < size; ++i) {
+        int value = dis(gen);
+        addBack(value);
+    }
+    std::cout << "Wygenerowano losowa liste dwukierunkowa o rozmiarze: " << size << std::endl;
 }

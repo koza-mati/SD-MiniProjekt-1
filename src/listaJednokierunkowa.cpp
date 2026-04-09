@@ -1,4 +1,8 @@
 #include <iostream>
+#include <fstream>
+#include <string>
+#include <random>
+#include <sstream>
 #include "listaJednokierunkowa.hpp"
 
 // konstruktor inicialzujacy head i tail na nullptr
@@ -162,6 +166,77 @@ bool listaJednokierunkowa::listSearch(const int& element) const {
         current = current->next;
     }
     return false;
+}
+
+// zapis zawartości listy do pliku CSV
+void listaJednokierunkowa::saveToCSV(const std::string& filename) const {
+    std::ofstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Blad otwarcia pliku: " << filename << std::endl;
+        return;
+    }
+
+    // Nagłówek CSV
+    file << "Index,Value\n";
+
+    // Zapisanie wszystkich elementów
+    Node* current = head;
+    int index = 0;
+    while (current != nullptr) {
+        file << index << "," << current->data << "\n";
+        current = current->next;
+        index++;
+    }
+
+    file.close();
+    std::cout << "Lista zostala zapisana do pliku: " << filename << std::endl;
+}
+
+// wczytanie zawartości z pliku CSV
+void listaJednokierunkowa::loadFromFile(const std::string& filename) {
+    // Wyczyszczenie obecnych danych
+    while (!isEmpty()) {
+        removeFromBegining();
+    }
+
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Blad otwarcia pliku: " << filename << std::endl;
+        return;
+    }
+
+    std::string line;
+    std::getline(file, line); // Pominiecie nagłówka
+
+    while (std::getline(file, line)) {
+        std::stringstream ss(line);
+        std::string indexStr, valueStr;
+        std::getline(ss, indexStr, ',');
+        std::getline(ss, valueStr, ',');
+
+        int value = std::stoi(valueStr);
+        addAtEnd(value);
+    }
+
+    file.close();
+    std::cout << "Lista zostala wczytana z pliku: " << filename << std::endl;
+}
+
+// generowanie losowej struktury o podanym rozmiarze
+void listaJednokierunkowa::generateRandom(int size) {
+    // Wyczyszczenie obecnych danych
+    while (!isEmpty()) {
+        removeFromBegining();
+    }
+
+    std::mt19937 gen(12345); // Stały seed dla powtarzalności
+    std::uniform_int_distribution<> dis(1, 1000000);
+
+    for (int i = 0; i < size; ++i) {
+        int value = dis(gen);
+        addAtEnd(value);
+    }
+    std::cout << "Wygenerowano losowa liste jednokierunkowa o rozmiarze: " << size << std::endl;
 }
 
 

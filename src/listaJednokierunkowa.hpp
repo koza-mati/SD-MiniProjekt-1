@@ -1,5 +1,7 @@
 #pragma once
 #include <iostream>
+#include <fstream>
+#include <string>
 
 // Klasyczny include guard (opcjonalnie, jeśli używasz #pragma once, nie jest konieczny)
 #ifndef LISTA_JEDNOKIERUNKOWA_HPP
@@ -15,6 +17,16 @@ private:
     friend class listaJednokierunkowa;
 };
 
+/**
+ * Klasa listaJednokierunkowa implementuje listę jednokierunkową.
+ * Wszystkie operacje są implementowane ręcznie bez użycia STL.
+ * Złożoności czasowe:
+ * - addToFront/removeFromBeginning: O(1)
+ * - addAtEnd: O(1) (dzięki tail pointer)
+ * - removeFromEnd: O(n) (brak prev pointer - trzeba przejść całą listę)
+ * - addAtPosition/removeFromPosition: O(n) średnio
+ * - listSearch: O(n)
+ */
 class listaJednokierunkowa {
 private:
     Node* head; // pierwszy element listy
@@ -32,6 +44,10 @@ public:
     void addAtPosition(const int& element, int position);                 // dodaj losowe miejsce
     void removeFromPosition(int position);             // usuń z losowe miejsce 
     bool listSearch(const int& element) const;                     // wyszukiawnie elementu w liście
+
+    void loadFromFile(const std::string& filename); // wczytanie z pliku
+    void generateRandom(int size);    // generowanie losowej struktury
+    void saveToCSV(const std::string& filename) const; // zapis do pliku CSV
 };
 
 #endif // LISTA_JEDNOKIERUNKOWA_HPP

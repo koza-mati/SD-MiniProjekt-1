@@ -1,4 +1,8 @@
 #include <iostream>
+#include <fstream>
+#include <string>
+#include <random>
+#include <sstream>
 #include "tablica_dynamiczna.hpp"
 
 // Konstruktor: inicjalizuje tablica z poczatkowym rozmiarem
@@ -140,4 +144,67 @@ int DynamicArray::find(int element) const {
     }
 
     return -1;
+}
+
+// zapis zawartości tablicy do pliku CSV
+void DynamicArray::saveToCSV(const std::string& filename) const {
+    std::ofstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Blad otwarcia pliku: " << filename << std::endl;
+        return;
+    }
+
+    // Nagłówek CSV
+    file << "Index,Value\n";
+
+    // Zapisanie wszystkich elementów
+    for (int i = 0; i < size; ++i) {
+        file << i << "," << data[i] << "\n";
+    }
+
+    file.close();
+    std::cout << "Tablica zostala zapisana do pliku: " << filename << std::endl;
+}
+
+// wczytanie zawartości z pliku CSV
+void DynamicArray::loadFromFile(const std::string& filename) {
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Blad otwarcia pliku: " << filename << std::endl;
+        return;
+    }
+
+    // Wyczyszczenie obecnych danych
+    size = 0;
+
+    std::string line;
+    std::getline(file, line); // Pominiecie nagłówka
+
+    while (std::getline(file, line)) {
+        std::stringstream ss(line);
+        std::string indexStr, valueStr;
+        std::getline(ss, indexStr, ',');
+        std::getline(ss, valueStr, ',');
+
+        int value = std::stoi(valueStr);
+        addAtEnd(value);
+    }
+
+    file.close();
+    std::cout << "Tablica zostala wczytana z pliku: " << filename << std::endl;
+}
+
+// generowanie losowej struktury o podanym rozmiarze
+void DynamicArray::generateRandom(int size) {
+    // Wyczyszczenie obecnych danych
+    this->size = 0;
+
+    std::mt19937 gen(12345); // Stały seed dla powtarzalności
+    std::uniform_int_distribution<> dis(1, 1000000);
+
+    for (int i = 0; i < size; ++i) {
+        int value = dis(gen);
+        addAtEnd(value);
+    }
+    std::cout << "Wygenerowano losowa tablice o rozmiarze: " << size << std::endl;
 }
