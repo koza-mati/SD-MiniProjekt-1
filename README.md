@@ -70,7 +70,7 @@ Implementacja listy jednokierunkowej. W nagłówku zdefiniowany jest typ `Node` 
 
 **Uwagi**
 
-- W menu głównym jest pozycja listy dwukierunkowej - na razie to tylko komunikat tekstowy; osobnych plików `lista_dwukierunkowa.*` jeszcze nie ma.
+- W menu głównym znajduje się już pozycja listy dwukierunkowej. Implementacja listy dwukierunkowej jest dostępna w plikach `src/listaDwukierunkowa.cpp` i `src/listaDwukierunkowa.hpp`.
 
 ---
 
@@ -97,31 +97,50 @@ Pliki te są gotowe do analizy i tworzenia wykresów bez konieczności korzystan
 
 ## 6. Badania wydajnościowe
 
-Program zawiera automatyczne testy wydajnościowe, dostępne w menu głównym pod opcją "Badania wydajnościowe". Testy mierzą czas wykonania podstawowych operacji na trzech strukturach danych dla różnych rozmiarów danych, a wyniki są uśredniane z wielokrotnych pomiarów dla każdej konfiguracji.
+Program zawiera automatyczne testy wydajnościowe, dostępne w menu głównym pod opcją "Badania wydajnościowe". Wyniki są zapisywane do plików CSV i mogą być wykorzystane do porównywania wydajności struktur danych.
 
-### Rozmiary danych:
-- 5000
-- 8000
-- 10000
-- 16000
-- 20000
-- 40000
-- 60000
-- 100000
+### Jak uruchomić testy
 
-### Testowane operacje:
-- **addAtEnd** / **addBack**: dodawanie na koniec
-- **addToFront** / **addFront**: dodawanie na początek
-- **find** / **listSearch**: wyszukiwanie elementu
-- **removeFromEnd** / **removeBack**: usuwanie z końca
-- **removeFromBeginning** / **removeFront**: usuwanie z początku
+1. W folderze głównym projektu skompiluj aplikację z plikiem źródłowym `src/main.cpp` i pozostałymi modułami:
 
-### Pliki wyjściowe:
-- `benchmark_tablica_dynamiczna.csv` - wyniki dla tablicy dynamicznej
-- `benchmark_lista_jednokierunkowa.csv` - wyniki dla listy jednokierunkowej
-- `benchmark_lista_dwukierunkowa.csv` - wyniki dla listy dwukierunkowej
+```bat
+g++ -std=c++17 -Wall -Wextra -o benchmark src\main.cpp src\menu.cpp src\tablica_dynamiczna.cpp src\listaJednokierunkowa.cpp src\listaDwukierunkowa.cpp
+```
 
-### Format plików CSV:
+2. Uruchom testy bezpośrednio:
+
+```bat
+src\benchmark.exe --benchmarks
+```
+
+3. Alternatywnie uruchom program normalnie i wybierz opcję `4. Badania wydajnościowe` w menu głównym.
+
+4. Po zakończeniu testów wyniki pojawią się w katalogu głównym projektu w plikach:
+- `benchmark_tablica_dynamiczna.csv`
+- `benchmark_lista_jednokierunkowa.csv`
+- `benchmark_lista_dwukierunkowa.csv`
+
+> Plik `input.txt` nie jest wymagany do uruchamiania testów i został wyłączony z repozytorium przez `.gitignore`.
+
+### Jak zostały przeprowadzone testy
+
+- Dla każdej struktury danych i każdego rozmiaru budowana jest najpierw struktura zawierająca losowe wartości.
+- Testowane rozmiary danych to: 5000, 8000, 10000, 16000, 20000, 40000, 60000 i 100000 elementów.
+- Dla każdej konfiguracji wykonywane jest stałe, powtarzalne zadanie operacji.
+- Każdy pomiar jest powtarzany kilka razy (`attempts = 3`), aby zredukować wpływ fluktuacji czasu i zamrożenia systemu.
+- Czas każdego zestawu operacji mierzony jest przy użyciu `std::chrono::high_resolution_clock`.
+- W plikach CSV zapisywany jest średni czas wykonania operacji w nanosekundach, obliczony jako suma czasów podzielona przez liczbę prób.
+
+### Testowane operacje
+- **addAtEnd** / **addBack** – wstawienie na koniec
+- **addToFront** / **addFront** – wstawienie na początek
+- **addAtPosition** / **insertAt** – wstawienie w losowej pozycji
+- **listSearch** / **find** – wyszukiwanie elementu
+- **removeFromEnd** / **removeBack** – usunięcie z końca
+- **removeFromBeginning** / **removeFront** – usunięcie z początku
+- **removeFromPosition** / **removeAt** – usunięcie z losowej pozycji
+
+### Format plików CSV
 ```
 Operation,Size,AverageTime_ns
 addAtEnd,5000,1200000
@@ -129,9 +148,7 @@ addToFront,5000,34000000
 ...
 ```
 
-Pliki te mogą być wykorzystane do tworzenia wykresów porównawczych wydajności struktur danych w narzędziach takich jak Excel, Google Sheets, Python (matplotlib), R czy innych programach do analizy danych.
-
-### Skrypt do wizualizacji (Python):
+Pliki te można wykorzystać do tworzenia wykresów porównawczych wydajności struktur danych w narzędziach takich jak Excel, Google Sheets, Python (matplotlib), R czy innych narzędziach do analizy danych.
 W katalogu głównym projektu znajduje się skrypt `plot_benchmarks.py`, który automatycznie tworzy wykresy porównawcze na podstawie wygenerowanych plików CSV.
 
 **Wymagania:**
