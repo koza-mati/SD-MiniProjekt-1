@@ -5,6 +5,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <sstream>
 
 #include "menu.hpp"
 #include "tablica_dynamiczna.hpp"
@@ -40,7 +41,9 @@ void menuTablicaDynamiczna() {
         std::cout << "6. Usun z pozycji" << std::endl;
         std::cout << "7. Wyszukaj element" << std::endl;
         std::cout << "8. Wyswietl rozmiar" << std::endl;
-        std::cout << "9. Wstecz do menu glownego" << std::endl;
+        std::cout << "9. Zbuduj z pliku" << std::endl;
+        std::cout << "10. Utworz losowo" << std::endl;
+        std::cout << "11. Wstecz do menu glownego" << std::endl;
         std::cout << "=====================================================" << std::endl;
         std::cout << "Twoj wybor: ";
         std::cin >> choice;
@@ -115,6 +118,22 @@ void menuTablicaDynamiczna() {
             std::cout << "Rozmiar tablicy: " << tablica.getSize() << std::endl;
             break;
         case 9:
+            {
+                std::string filename;
+                std::cout << "Podaj nazwe pliku CSV: ";
+                std::cin >> filename;
+                tablica.loadFromFile(filename);
+            }
+            break;
+        case 10:
+            {
+                int size;
+                std::cout << "Podaj rozmiar struktury: ";
+                std::cin >> size;
+                tablica.generateRandom(size);
+            }
+            break;
+        case 11:
             return;
         default:
             std::cout << "Nieprawidlowy wybor!" << std::endl;
@@ -136,7 +155,9 @@ void menuListaJednokierunkowa() {
         std::cout << "6. Usun z pozycji" << std::endl;
         std::cout << "7. Wyszukaj element" << std::endl;
         std::cout << "8. Czy lista pusta?" << std::endl;
-        std::cout << "9. Wstecz do menu glownego" << std::endl;
+        std::cout << "9. Zbuduj z pliku" << std::endl;
+        std::cout << "10. Utworz losowo" << std::endl;
+        std::cout << "11. Wstecz do menu glownego" << std::endl;
         std::cout << "=======================================================" << std::endl;
         std::cout << "Twoj wybor: ";
         std::cin >> choice;
@@ -212,6 +233,22 @@ void menuListaJednokierunkowa() {
             }
             break;
         case 9:
+            {
+                std::string filename;
+                std::cout << "Podaj nazwe pliku CSV: ";
+                std::cin >> filename;
+                lista.loadFromFile(filename);
+            }
+            break;
+        case 10:
+            {
+                int size;
+                std::cout << "Podaj rozmiar struktury: ";
+                std::cin >> size;
+                lista.generateRandom(size);
+            }
+            break;
+        case 11:
             return;
         default:
             std::cout << "Nieprawidlowy wybor!" << std::endl;
@@ -233,7 +270,9 @@ void menuListaDwukierunkowa() {
         std::cout << "6. Usun z pozycji" << std::endl;
         std::cout << "7. Wyszukaj element" << std::endl;
         std::cout << "8. Czy lista pusta?" << std::endl;
-        std::cout << "9. Wstecz do menu glownego" << std::endl;
+        std::cout << "9. Zbuduj z pliku" << std::endl;
+        std::cout << "10. Utworz losowo" << std::endl;
+        std::cout << "11. Wstecz do menu glownego" << std::endl;
         std::cout << "=======================================================" << std::endl;
         std::cout << "Twoj wybor: ";
         std::cin >> choice;
@@ -300,6 +339,22 @@ void menuListaDwukierunkowa() {
             }
             break;
         case 9:
+            {
+                std::string filename;
+                std::cout << "Podaj nazwe pliku CSV: ";
+                std::cin >> filename;
+                lista.loadFromFile(filename);
+            }
+            break;
+        case 10:
+            {
+                int size;
+                std::cout << "Podaj rozmiar struktury: ";
+                std::cin >> size;
+                lista.generateRandom(size);
+            }
+            break;
+        case 11:
             return;
         default:
             std::cout << "Nieprawidlowy wybor!" << std::endl;
