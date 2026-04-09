@@ -469,9 +469,13 @@ void benchmarkDynamicArray(const std::string& resultsFile) {
                 for (int i = 0; i < size; ++i) {
                     arr.addAtEnd(testData[i]);
                 }
+                // Warmup - cache heating
+                for (int i = 0; i < warmupOps; ++i) {
+                    arr.addToFront(testData[size + (i % operations)]);
+                }
                 auto start = std::chrono::high_resolution_clock::now();
                 for (int i = 0; i < operations; ++i) {
-                    arr.addToFront(testData[size + i]);
+                    arr.addToFront(testData[size + warmupOps + i]);
                 }
                 auto end = std::chrono::high_resolution_clock::now();
                 sumAddToFront += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / operations;
@@ -481,6 +485,10 @@ void benchmarkDynamicArray(const std::string& resultsFile) {
                 DynamicArray arr;
                 for (int i = 0; i < size; ++i) {
                     arr.addAtEnd(testData[i]);
+                }
+                // Warmup - cache heating
+                for (int i = 0; i < warmupOps; ++i) {
+                    arr.find(testData[std::uniform_int_distribution<>(0, size - 1)(rng)]);
                 }
                 auto start = std::chrono::high_resolution_clock::now();
                 for (int i = 0; i < operations; ++i) {
@@ -495,10 +503,15 @@ void benchmarkDynamicArray(const std::string& resultsFile) {
                 for (int i = 0; i < size; ++i) {
                     arr.addAtEnd(testData[i]);
                 }
+                // Warmup - cache heating
+                for (int i = 0; i < warmupOps; ++i) {
+                    int pos = std::uniform_int_distribution<>(0, arr.getSize())(rng);
+                    arr.addAtPosition(testData[size + (i % operations)], pos);
+                }
                 auto start = std::chrono::high_resolution_clock::now();
                 for (int i = 0; i < operations; ++i) {
                     int pos = std::uniform_int_distribution<>(0, arr.getSize())(rng);
-                    arr.addAtPosition(testData[size + i], pos);
+                    arr.addAtPosition(testData[size + warmupOps + i], pos);
                 }
                 auto end = std::chrono::high_resolution_clock::now();
                 sumAddAtPosition += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / operations;
@@ -607,9 +620,13 @@ void benchmarkListaJednokierunkowa(const std::string& resultsFile) {
                 for (int i = 0; i < size; ++i) {
                     lista.addAtEnd(testData[i]);
                 }
+                // Warmup - cache heating
+                for (int i = 0; i < warmupOps; ++i) {
+                    lista.addToFront(testData[size + (i % operations)]);
+                }
                 auto start = std::chrono::high_resolution_clock::now();
                 for (int i = 0; i < operations; ++i) {
-                    lista.addToFront(testData[size + i]);
+                    lista.addToFront(testData[size + warmupOps + i]);
                 }
                 auto end = std::chrono::high_resolution_clock::now();
                 sumAddToFront += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / operations;
@@ -620,10 +637,15 @@ void benchmarkListaJednokierunkowa(const std::string& resultsFile) {
                 for (int i = 0; i < size; ++i) {
                     lista.addAtEnd(testData[i]);
                 }
+                // Warmup - cache heating
+                for (int i = 0; i < warmupOps; ++i) {
+                    int pos = std::uniform_int_distribution<>(0, size)(rng);
+                    lista.addAtPosition(testData[size + (i % operations)], pos);
+                }
                 auto start = std::chrono::high_resolution_clock::now();
                 for (int i = 0; i < operations; ++i) {
                     int pos = std::uniform_int_distribution<>(0, size)(rng);
-                    lista.addAtPosition(testData[size + i], pos);
+                    lista.addAtPosition(testData[size + warmupOps + i], pos);
                 }
                 auto end = std::chrono::high_resolution_clock::now();
                 sumAddAtPosition += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / operations;
@@ -633,6 +655,10 @@ void benchmarkListaJednokierunkowa(const std::string& resultsFile) {
                 listaJednokierunkowa lista;
                 for (int i = 0; i < size; ++i) {
                     lista.addAtEnd(testData[i]);
+                }
+                // Warmup - cache heating
+                for (int i = 0; i < warmupOps; ++i) {
+                    lista.listSearch(testData[std::uniform_int_distribution<>(0, size - 1)(rng)]);
                 }
                 auto start = std::chrono::high_resolution_clock::now();
                 for (int i = 0; i < operations; ++i) {
@@ -745,9 +771,13 @@ void benchmarkListaDwukierunkowa(const std::string& resultsFile) {
                 for (int i = 0; i < size; ++i) {
                     lista.addBack(testData[i]);
                 }
+                // Warmup - cache heating
+                for (int i = 0; i < warmupOps; ++i) {
+                    lista.addFront(testData[size + (i % operations)]);
+                }
                 auto start = std::chrono::high_resolution_clock::now();
                 for (int i = 0; i < operations; ++i) {
-                    lista.addFront(testData[size + i]);
+                    lista.addFront(testData[size + warmupOps + i]);
                 }
                 auto end = std::chrono::high_resolution_clock::now();
                 sumAddFront += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / operations;
@@ -758,10 +788,15 @@ void benchmarkListaDwukierunkowa(const std::string& resultsFile) {
                 for (int i = 0; i < size; ++i) {
                     lista.addBack(testData[i]);
                 }
+                // Warmup - cache heating
+                for (int i = 0; i < warmupOps; ++i) {
+                    int pos = std::uniform_int_distribution<>(0, size)(rng);
+                    lista.insertAt(pos, testData[size + (i % operations)]);
+                }
                 auto start = std::chrono::high_resolution_clock::now();
                 for (int i = 0; i < operations; ++i) {
                     int pos = std::uniform_int_distribution<>(0, size)(rng);
-                    lista.insertAt(pos, testData[size + i]);
+                    lista.insertAt(pos, testData[size + warmupOps + i]);
                 }
                 auto end = std::chrono::high_resolution_clock::now();
                 sumInsertAt += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / operations;
@@ -771,6 +806,10 @@ void benchmarkListaDwukierunkowa(const std::string& resultsFile) {
                 DoublyLinkedList lista;
                 for (int i = 0; i < size; ++i) {
                     lista.addBack(testData[i]);
+                }
+                // Warmup - cache heating
+                for (int i = 0; i < warmupOps; ++i) {
+                    lista.find(testData[std::uniform_int_distribution<>(0, size - 1)(rng)]);
                 }
                 auto start = std::chrono::high_resolution_clock::now();
                 for (int i = 0; i < operations; ++i) {
