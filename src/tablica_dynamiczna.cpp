@@ -1,4 +1,6 @@
 #include <iostream>
+#include <fstream>
+#include <string>
 #include "tablica_dynamiczna.hpp"
 
 // Konstruktor: inicjalizuje tablica z poczatkowym rozmiarem
@@ -140,4 +142,24 @@ int DynamicArray::find(int element) const {
     }
 
     return -1;
+}
+
+// zapis zawartości tablicy do pliku CSV
+void DynamicArray::saveToCSV(const std::string& filename) const {
+    std::ofstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Blad otwarcia pliku: " << filename << std::endl;
+        return;
+    }
+
+    // Nagłówek CSV
+    file << "Index,Value\n";
+
+    // Zapisanie wszystkich elementów
+    for (int i = 0; i < size; ++i) {
+        file << i << "," << data[i] << "\n";
+    }
+
+    file.close();
+    std::cout << "Tablica zostala zapisana do pliku: " << filename << std::endl;
 }

@@ -1,5 +1,7 @@
 #pragma once
 #include <iostream>
+#include <fstream>
+#include <string>
 
 // Klasyczny include guard (opcjonalnie, jeśli używasz #pragma once, nie jest konieczny)
 #ifndef LISTA_JEDNOKIERUNKOWA_HPP
@@ -32,6 +34,8 @@ public:
     void addAtPosition(const int& element, int position);                 // dodaj losowe miejsce
     void removeFromPosition(int position);             // usuń z losowe miejsce 
     bool listSearch(const int& element) const;                     // wyszukiawnie elementu w liście
+
+    void saveToCSV(const std::string& filename) const; // zapis do pliku CSV
 };
 
 #endif // LISTA_JEDNOKIERUNKOWA_HPP

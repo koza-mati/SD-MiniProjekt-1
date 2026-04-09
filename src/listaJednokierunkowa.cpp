@@ -1,4 +1,6 @@
 #include <iostream>
+#include <fstream>
+#include <string>
 #include "listaJednokierunkowa.hpp"
 
 // konstruktor inicialzujacy head i tail na nullptr
@@ -162,6 +164,30 @@ bool listaJednokierunkowa::listSearch(const int& element) const {
         current = current->next;
     }
     return false;
+}
+
+// zapis zawartości listy do pliku CSV
+void listaJednokierunkowa::saveToCSV(const std::string& filename) const {
+    std::ofstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Blad otwarcia pliku: " << filename << std::endl;
+        return;
+    }
+
+    // Nagłówek CSV
+    file << "Index,Value\n";
+
+    // Zapisanie wszystkich elementów
+    Node* current = head;
+    int index = 0;
+    while (current != nullptr) {
+        file << index << "," << current->data << "\n";
+        current = current->next;
+        index++;
+    }
+
+    file.close();
+    std::cout << "Lista zostala zapisana do pliku: " << filename << std::endl;
 }
 
 

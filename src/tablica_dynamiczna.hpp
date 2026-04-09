@@ -1,5 +1,7 @@
 #pragma once
 #include <iostream>
+#include <fstream>
+#include <string>
 
 
 class DynamicArray {
@@ -27,4 +29,6 @@ public:
     void removeFromPosition(int position); // usuń z wybranej pozycji
 
     int find(int element) const;      // wyszukiwanie indeksu elementu (-1 gdy brak)
+
+    void saveToCSV(const std::string& filename) const; // zapis do pliku CSV
 };
