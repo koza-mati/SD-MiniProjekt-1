@@ -27,6 +27,35 @@ static std::vector<int> generateBenchmarkData(int size, int operations, int warm
     return data;
 }
 
+static const std::vector<int>& benchmarkSizes() {
+    static const std::vector<int> sizes = {10000, 20000, 40000, 80000, 100000, 160000, 320000, 640000};
+    return sizes;
+}
+
+static const int kBenchmarkAttempts = 100;
+
+static int benchmarkMiddlePosition(int size) {
+    return size / 2;
+}
+
+static void appendMeasurement(std::ofstream& txtFile, const std::string& structureName,
+                              const std::string& operationName, int size, long long averageTimeNs) {
+    txtFile << structureName << ';' << operationName << ';' << size << ';' << averageTimeNs << '\n';
+}
+
+static void writeSeedsForSize(const std::string& filename, int size) {
+    std::ofstream seedFile(filename, std::ios::trunc);
+    if (!seedFile.is_open()) {
+        std::cerr << "Blad otwarcia pliku seedow: " << filename << std::endl;
+        return;
+    }
+
+    seedFile << "Rozmiar;Proba;Seed\n";
+    for (int attempt = 0; attempt < kBenchmarkAttempts; ++attempt) {
+        seedFile << size << ';' << attempt << ';' << benchmarkSeed(size, attempt) << '\n';
+    }
+}
+
 void menuTablicaDynamiczna() {
     DynamicArray tablica;
     int choice, element, position;
@@ -403,16 +432,29 @@ void menuGlowne() {
 void runBenchmarks() {
     std::cout << "\n================= BADANIA WYDAJNOSCIOWE =================" << std::endl;
     std::cout << "Uruchamianie testow wydajnosciowych..." << std::endl;
-    std::cout << "Wyniki zostana zapisane do plikow CSV." << std::endl;
+    std::cout << "Wyniki zostana zapisane do pliku pomiary.txt oraz pomocniczych plikow CSV." << std::endl;
+    std::cout << "Kazda operacja jest mierzona 100 razy na swiezych kopiach struktur o stalym rozmiarze N." << std::endl;
     std::cout << "Pomiar jest wykonywany wielokrotnie dla kazdego rozmiaru i uśredniany." << std::endl;
     std::cout << "To moze zajac kilka minut..." << std::endl;
     std::cout << "=========================================================" << std::endl;
+
+    std::ofstream txtFile("pomiary.txt", std::ios::trunc);
+    if (!txtFile.is_open()) {
+        std::cerr << "Blad otwarcia pliku pomiary.txt" << std::endl;
+        return;
+    }
+    txtFile << "Struktura;Operacja;Rozmiar;SredniCzas_ns\n";
+    txtFile.close();
+
+    writeSeedsForSize("seedy_100000.txt", 100000);
 
     benchmarkDynamicArray("benchmark_tablica_dynamiczna.csv");
     benchmarkListaJednokierunkowa("benchmark_lista_jednokierunkowa.csv");
     benchmarkListaDwukierunkowa("benchmark_lista_dwukierunkowa.csv");
 
     std::cout << "\nBadania zakonczone! Pliki wynikowe:" << std::endl;
+    std::cout << "- pomiary.txt" << std::endl;
+    std::cout << "- seedy_100000.txt" << std::endl;
     std::cout << "- benchmark_tablica_dynamiczna.csv" << std::endl;
     std::cout << "- benchmark_lista_jednokierunkowa.csv" << std::endl;
     std::cout << "- benchmark_lista_dwukierunkowa.csv" << std::endl;
@@ -426,13 +468,15 @@ void benchmarkDynamicArray(const std::string& resultsFile) {
         return;
     }
 
-    file << "Operation,Size,AverageTime_ns\n";
-    std::vector<int> sizes = {5000, 8000, 10000, 16000, 20000, 40000, 60000, 100000};
-    const int attempts = 5;
-    const int operations = 1000;
-    const int warmupOps = 100;
+    std::ofstream txtFile("pomiary.txt", std::ios::app);
+    if (!txtFile.is_open()) {
+        std::cerr << "Blad otwarcia pliku pomiary.txt" << std::endl;
+        return;
+    }
 
-    for (int size : sizes) {
+    file << "Operation,Size,AverageTime_ns\n";
+
+    for (int size : benchmarkSizes()) {
         std::cout << "Testowanie tablicy dynamicznej, rozmiar: " << size << std::endl;
 
         long long sumAddAtEnd = 0;
@@ -443,25 +487,19 @@ void benchmarkDynamicArray(const std::string& resultsFile) {
         long long sumRemoveFromBeginning = 0;
         long long sumRemoveFromPosition = 0;
 
-        for (int attempt = 0; attempt < attempts; ++attempt) {
-            auto testData = generateBenchmarkData(size, operations, warmupOps, benchmarkSeed(size, attempt));
-            std::mt19937 rng(benchmarkSeed(size, attempt) + 1);
+        for (int attempt = 0; attempt < kBenchmarkAttempts; ++attempt) {
+            auto testData = generateBenchmarkData(size, 1, 0, benchmarkSeed(size, attempt));
+            const int middlePosition = benchmarkMiddlePosition(size);
 
             {
                 DynamicArray arr;
                 for (int i = 0; i < size; ++i) {
                     arr.addAtEnd(testData[i]);
                 }
-                // Warmup - cache heating
-                for (int i = 0; i < warmupOps; ++i) {
-                    arr.addAtEnd(testData[size + (i % operations)]);
-                }
                 auto start = std::chrono::high_resolution_clock::now();
-                for (int i = 0; i < operations; ++i) {
-                    arr.addAtEnd(testData[size + warmupOps + i]);
-                }
+                arr.addAtEnd(testData[size]);
                 auto end = std::chrono::high_resolution_clock::now();
-                sumAddAtEnd += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / operations;
+                sumAddAtEnd += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
             }
 
             {
@@ -469,16 +507,10 @@ void benchmarkDynamicArray(const std::string& resultsFile) {
                 for (int i = 0; i < size; ++i) {
                     arr.addAtEnd(testData[i]);
                 }
-                // Warmup - cache heating
-                for (int i = 0; i < warmupOps; ++i) {
-                    arr.addToFront(testData[size + (i % operations)]);
-                }
                 auto start = std::chrono::high_resolution_clock::now();
-                for (int i = 0; i < operations; ++i) {
-                    arr.addToFront(testData[size + warmupOps + i]);
-                }
+                arr.addToFront(testData[size]);
                 auto end = std::chrono::high_resolution_clock::now();
-                sumAddToFront += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / operations;
+                sumAddToFront += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
             }
 
             {
@@ -486,16 +518,10 @@ void benchmarkDynamicArray(const std::string& resultsFile) {
                 for (int i = 0; i < size; ++i) {
                     arr.addAtEnd(testData[i]);
                 }
-                // Warmup - cache heating
-                for (int i = 0; i < warmupOps; ++i) {
-                    arr.find(testData[std::uniform_int_distribution<>(0, size - 1)(rng)]);
-                }
                 auto start = std::chrono::high_resolution_clock::now();
-                for (int i = 0; i < operations; ++i) {
-                    arr.find(testData[std::uniform_int_distribution<>(0, size - 1)(rng)]);
-                }
+                arr.find(testData[middlePosition]);
                 auto end = std::chrono::high_resolution_clock::now();
-                sumFind += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / operations;
+                sumFind += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
             }
 
             {
@@ -503,71 +529,73 @@ void benchmarkDynamicArray(const std::string& resultsFile) {
                 for (int i = 0; i < size; ++i) {
                     arr.addAtEnd(testData[i]);
                 }
-                // Warmup - cache heating
-                for (int i = 0; i < warmupOps; ++i) {
-                    int pos = std::uniform_int_distribution<>(0, arr.getSize())(rng);
-                    arr.addAtPosition(testData[size + (i % operations)], pos);
-                }
                 auto start = std::chrono::high_resolution_clock::now();
-                for (int i = 0; i < operations; ++i) {
-                    int pos = std::uniform_int_distribution<>(0, arr.getSize())(rng);
-                    arr.addAtPosition(testData[size + warmupOps + i], pos);
-                }
+                arr.addAtPosition(testData[size], middlePosition);
                 auto end = std::chrono::high_resolution_clock::now();
-                sumAddAtPosition += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / operations;
+                sumAddAtPosition += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
             }
 
             {
                 DynamicArray arr;
-                for (int i = 0; i < size + operations; ++i) {
+                for (int i = 0; i < size; ++i) {
                     arr.addAtEnd(testData[i]);
                 }
                 auto start = std::chrono::high_resolution_clock::now();
-                for (int i = 0; i < operations; ++i) {
-                    arr.removeFromEnd();
-                }
+                arr.removeFromEnd();
                 auto end = std::chrono::high_resolution_clock::now();
-                sumRemoveFromEnd += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / operations;
+                sumRemoveFromEnd += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
             }
 
             {
                 DynamicArray arr;
-                for (int i = 0; i < size + operations; ++i) {
+                for (int i = 0; i < size; ++i) {
                     arr.addAtEnd(testData[i]);
                 }
                 auto start = std::chrono::high_resolution_clock::now();
-                for (int i = 0; i < operations; ++i) {
-                    arr.removeFromBeginning();
-                }
+                arr.removeFromBeginning();
                 auto end = std::chrono::high_resolution_clock::now();
-                sumRemoveFromBeginning += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / operations;
+                sumRemoveFromBeginning += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
             }
 
             {
                 DynamicArray arr;
-                for (int i = 0; i < size + operations; ++i) {
+                for (int i = 0; i < size; ++i) {
                     arr.addAtEnd(testData[i]);
                 }
                 auto start = std::chrono::high_resolution_clock::now();
-                for (int i = 0; i < operations; ++i) {
-                    int pos = std::uniform_int_distribution<>(0, arr.getSize() - 1)(rng);
-                    arr.removeFromPosition(pos);
-                }
+                arr.removeFromPosition(middlePosition);
                 auto end = std::chrono::high_resolution_clock::now();
-                sumRemoveFromPosition += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / operations;
+                sumRemoveFromPosition += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
             }
         }
 
-        file << "addAtEnd," << size << "," << (sumAddAtEnd / attempts) << "\n";
-        file << "addToFront," << size << "," << (sumAddToFront / attempts) << "\n";
-        file << "addAtPosition," << size << "," << (sumAddAtPosition / attempts) << "\n";
-        file << "find," << size << "," << (sumFind / attempts) << "\n";
-        file << "removeFromEnd," << size << "," << (sumRemoveFromEnd / attempts) << "\n";
-        file << "removeFromBeginning," << size << "," << (sumRemoveFromBeginning / attempts) << "\n";
-        file << "removeFromPosition," << size << "," << (sumRemoveFromPosition / attempts) << "\n";
+        const long long avgAddAtEnd = sumAddAtEnd / kBenchmarkAttempts;
+        const long long avgAddToFront = sumAddToFront / kBenchmarkAttempts;
+        const long long avgAddAtPosition = sumAddAtPosition / kBenchmarkAttempts;
+        const long long avgFind = sumFind / kBenchmarkAttempts;
+        const long long avgRemoveFromEnd = sumRemoveFromEnd / kBenchmarkAttempts;
+        const long long avgRemoveFromBeginning = sumRemoveFromBeginning / kBenchmarkAttempts;
+        const long long avgRemoveFromPosition = sumRemoveFromPosition / kBenchmarkAttempts;
+
+        file << "addAtEnd," << size << "," << avgAddAtEnd << "\n";
+        file << "addToFront," << size << "," << avgAddToFront << "\n";
+        file << "addAtPosition," << size << "," << avgAddAtPosition << "\n";
+        file << "find," << size << "," << avgFind << "\n";
+        file << "removeFromEnd," << size << "," << avgRemoveFromEnd << "\n";
+        file << "removeFromBeginning," << size << "," << avgRemoveFromBeginning << "\n";
+        file << "removeFromPosition," << size << "," << avgRemoveFromPosition << "\n";
+
+        appendMeasurement(txtFile, "TablicaDynamiczna", "addAtEnd", size, avgAddAtEnd);
+        appendMeasurement(txtFile, "TablicaDynamiczna", "addToFront", size, avgAddToFront);
+        appendMeasurement(txtFile, "TablicaDynamiczna", "addAtPosition", size, avgAddAtPosition);
+        appendMeasurement(txtFile, "TablicaDynamiczna", "find", size, avgFind);
+        appendMeasurement(txtFile, "TablicaDynamiczna", "removeFromEnd", size, avgRemoveFromEnd);
+        appendMeasurement(txtFile, "TablicaDynamiczna", "removeFromBeginning", size, avgRemoveFromBeginning);
+        appendMeasurement(txtFile, "TablicaDynamiczna", "removeFromPosition", size, avgRemoveFromPosition);
     }
 
     file.close();
+    txtFile.close();
 }
 
 void benchmarkListaJednokierunkowa(const std::string& resultsFile) {
@@ -577,13 +605,15 @@ void benchmarkListaJednokierunkowa(const std::string& resultsFile) {
         return;
     }
 
-    file << "Operation,Size,AverageTime_ns\n";
-    std::vector<int> sizes = {5000, 8000, 10000, 16000, 20000, 40000, 60000, 100000};
-    const int attempts = 5;
-    const int operations = 1000;
-    const int warmupOps = 100;
+    std::ofstream txtFile("pomiary.txt", std::ios::app);
+    if (!txtFile.is_open()) {
+        std::cerr << "Blad otwarcia pliku pomiary.txt" << std::endl;
+        return;
+    }
 
-    for (int size : sizes) {
+    file << "Operation,Size,AverageTime_ns\n";
+
+    for (int size : benchmarkSizes()) {
         std::cout << "Testowanie listy jednokierunkowej, rozmiar: " << size << std::endl;
 
         long long sumAddAtEnd = 0;
@@ -594,25 +624,19 @@ void benchmarkListaJednokierunkowa(const std::string& resultsFile) {
         long long sumRemoveFromBeginning = 0;
         long long sumRemoveFromPosition = 0;
 
-        for (int attempt = 0; attempt < attempts; ++attempt) {
-            auto testData = generateBenchmarkData(size, operations, warmupOps, benchmarkSeed(size, attempt));
-            std::mt19937 rng(benchmarkSeed(size, attempt) + 1);
+        for (int attempt = 0; attempt < kBenchmarkAttempts; ++attempt) {
+            auto testData = generateBenchmarkData(size, 1, 0, benchmarkSeed(size, attempt));
+            const int middlePosition = benchmarkMiddlePosition(size);
 
             {
                 listaJednokierunkowa lista;
                 for (int i = 0; i < size; ++i) {
                     lista.addAtEnd(testData[i]);
                 }
-                // Warmup - cache heating
-                for (int i = 0; i < warmupOps; ++i) {
-                    lista.addAtEnd(testData[size + (i % operations)]);
-                }
                 auto start = std::chrono::high_resolution_clock::now();
-                for (int i = 0; i < operations; ++i) {
-                    lista.addAtEnd(testData[size + warmupOps + i]);
-                }
+                lista.addAtEnd(testData[size]);
                 auto end = std::chrono::high_resolution_clock::now();
-                sumAddAtEnd += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / operations;
+                sumAddAtEnd += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
             }
 
             {
@@ -620,16 +644,10 @@ void benchmarkListaJednokierunkowa(const std::string& resultsFile) {
                 for (int i = 0; i < size; ++i) {
                     lista.addAtEnd(testData[i]);
                 }
-                // Warmup - cache heating
-                for (int i = 0; i < warmupOps; ++i) {
-                    lista.addToFront(testData[size + (i % operations)]);
-                }
                 auto start = std::chrono::high_resolution_clock::now();
-                for (int i = 0; i < operations; ++i) {
-                    lista.addToFront(testData[size + warmupOps + i]);
-                }
+                lista.addToFront(testData[size]);
                 auto end = std::chrono::high_resolution_clock::now();
-                sumAddToFront += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / operations;
+                sumAddToFront += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
             }
 
             {
@@ -637,18 +655,10 @@ void benchmarkListaJednokierunkowa(const std::string& resultsFile) {
                 for (int i = 0; i < size; ++i) {
                     lista.addAtEnd(testData[i]);
                 }
-                // Warmup - cache heating
-                for (int i = 0; i < warmupOps; ++i) {
-                    int pos = std::uniform_int_distribution<>(0, size)(rng);
-                    lista.addAtPosition(testData[size + (i % operations)], pos);
-                }
                 auto start = std::chrono::high_resolution_clock::now();
-                for (int i = 0; i < operations; ++i) {
-                    int pos = std::uniform_int_distribution<>(0, size)(rng);
-                    lista.addAtPosition(testData[size + warmupOps + i], pos);
-                }
+                lista.addAtPosition(testData[size], middlePosition);
                 auto end = std::chrono::high_resolution_clock::now();
-                sumAddAtPosition += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / operations;
+                sumAddAtPosition += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
             }
 
             {
@@ -656,69 +666,73 @@ void benchmarkListaJednokierunkowa(const std::string& resultsFile) {
                 for (int i = 0; i < size; ++i) {
                     lista.addAtEnd(testData[i]);
                 }
-                // Warmup - cache heating
-                for (int i = 0; i < warmupOps; ++i) {
-                    lista.listSearch(testData[std::uniform_int_distribution<>(0, size - 1)(rng)]);
-                }
                 auto start = std::chrono::high_resolution_clock::now();
-                for (int i = 0; i < operations; ++i) {
-                    lista.listSearch(testData[std::uniform_int_distribution<>(0, size - 1)(rng)]);
-                }
+                lista.listSearch(testData[middlePosition]);
                 auto end = std::chrono::high_resolution_clock::now();
-                sumFind += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / operations;
+                sumFind += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
             }
 
             {
                 listaJednokierunkowa lista;
-                for (int i = 0; i < size + operations; ++i) {
+                for (int i = 0; i < size; ++i) {
                     lista.addAtEnd(testData[i]);
                 }
                 auto start = std::chrono::high_resolution_clock::now();
-                for (int i = 0; i < operations; ++i) {
-                    lista.removeFromEnd();
-                }
+                lista.removeFromEnd();
                 auto end = std::chrono::high_resolution_clock::now();
-                sumRemoveFromEnd += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / operations;
+                sumRemoveFromEnd += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
             }
 
             {
                 listaJednokierunkowa lista;
-                for (int i = 0; i < size + operations; ++i) {
+                for (int i = 0; i < size; ++i) {
                     lista.addAtEnd(testData[i]);
                 }
                 auto start = std::chrono::high_resolution_clock::now();
-                for (int i = 0; i < operations; ++i) {
-                    lista.removeFromBegining();
-                }
+                lista.removeFromBegining();
                 auto end = std::chrono::high_resolution_clock::now();
-                sumRemoveFromBeginning += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / operations;
+                sumRemoveFromBeginning += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
             }
 
             {
                 listaJednokierunkowa lista;
-                for (int i = 0; i < size + operations; ++i) {
+                for (int i = 0; i < size; ++i) {
                     lista.addAtEnd(testData[i]);
                 }
                 auto start = std::chrono::high_resolution_clock::now();
-                for (int i = 0; i < operations; ++i) {
-                    int pos = std::uniform_int_distribution<>(0, size - 1)(rng);
-                    lista.removeFromPosition(pos);
-                }
+                lista.removeFromPosition(middlePosition);
                 auto end = std::chrono::high_resolution_clock::now();
-                sumRemoveFromPosition += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / operations;
+                sumRemoveFromPosition += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
             }
         }
 
-        file << "addAtEnd," << size << "," << (sumAddAtEnd / attempts) << "\n";
-        file << "addToFront," << size << "," << (sumAddToFront / attempts) << "\n";
-        file << "addAtPosition," << size << "," << (sumAddAtPosition / attempts) << "\n";
-        file << "listSearch," << size << "," << (sumFind / attempts) << "\n";
-        file << "removeFromEnd," << size << "," << (sumRemoveFromEnd / attempts) << "\n";
-        file << "removeFromBeginning," << size << "," << (sumRemoveFromBeginning / attempts) << "\n";
-        file << "removeFromPosition," << size << "," << (sumRemoveFromPosition / attempts) << "\n";
+        const long long avgAddAtEnd = sumAddAtEnd / kBenchmarkAttempts;
+        const long long avgAddToFront = sumAddToFront / kBenchmarkAttempts;
+        const long long avgAddAtPosition = sumAddAtPosition / kBenchmarkAttempts;
+        const long long avgFind = sumFind / kBenchmarkAttempts;
+        const long long avgRemoveFromEnd = sumRemoveFromEnd / kBenchmarkAttempts;
+        const long long avgRemoveFromBeginning = sumRemoveFromBeginning / kBenchmarkAttempts;
+        const long long avgRemoveFromPosition = sumRemoveFromPosition / kBenchmarkAttempts;
+
+        file << "addAtEnd," << size << "," << avgAddAtEnd << "\n";
+        file << "addToFront," << size << "," << avgAddToFront << "\n";
+        file << "addAtPosition," << size << "," << avgAddAtPosition << "\n";
+        file << "listSearch," << size << "," << avgFind << "\n";
+        file << "removeFromEnd," << size << "," << avgRemoveFromEnd << "\n";
+        file << "removeFromBeginning," << size << "," << avgRemoveFromBeginning << "\n";
+        file << "removeFromPosition," << size << "," << avgRemoveFromPosition << "\n";
+
+        appendMeasurement(txtFile, "ListaJednokierunkowa", "addAtEnd", size, avgAddAtEnd);
+        appendMeasurement(txtFile, "ListaJednokierunkowa", "addToFront", size, avgAddToFront);
+        appendMeasurement(txtFile, "ListaJednokierunkowa", "addAtPosition", size, avgAddAtPosition);
+        appendMeasurement(txtFile, "ListaJednokierunkowa", "listSearch", size, avgFind);
+        appendMeasurement(txtFile, "ListaJednokierunkowa", "removeFromEnd", size, avgRemoveFromEnd);
+        appendMeasurement(txtFile, "ListaJednokierunkowa", "removeFromBeginning", size, avgRemoveFromBeginning);
+        appendMeasurement(txtFile, "ListaJednokierunkowa", "removeFromPosition", size, avgRemoveFromPosition);
     }
 
     file.close();
+    txtFile.close();
 }
 
 void benchmarkListaDwukierunkowa(const std::string& resultsFile) {
@@ -728,13 +742,15 @@ void benchmarkListaDwukierunkowa(const std::string& resultsFile) {
         return;
     }
 
-    file << "Operation,Size,AverageTime_ns\n";
-    std::vector<int> sizes = {5000, 8000, 10000, 16000, 20000, 40000, 60000, 100000};
-    const int attempts = 5;
-    const int operations = 1000;
-    const int warmupOps = 100;
+    std::ofstream txtFile("pomiary.txt", std::ios::app);
+    if (!txtFile.is_open()) {
+        std::cerr << "Blad otwarcia pliku pomiary.txt" << std::endl;
+        return;
+    }
 
-    for (int size : sizes) {
+    file << "Operation,Size,AverageTime_ns\n";
+
+    for (int size : benchmarkSizes()) {
         std::cout << "Testowanie listy dwukierunkowej, rozmiar: " << size << std::endl;
 
         long long sumAddBack = 0;
@@ -745,25 +761,19 @@ void benchmarkListaDwukierunkowa(const std::string& resultsFile) {
         long long sumRemoveFront = 0;
         long long sumRemoveAt = 0;
 
-        for (int attempt = 0; attempt < attempts; ++attempt) {
-            auto testData = generateBenchmarkData(size, operations, warmupOps, benchmarkSeed(size, attempt));
-            std::mt19937 rng(benchmarkSeed(size, attempt) + 1);
+        for (int attempt = 0; attempt < kBenchmarkAttempts; ++attempt) {
+            auto testData = generateBenchmarkData(size, 1, 0, benchmarkSeed(size, attempt));
+            const int middlePosition = benchmarkMiddlePosition(size);
 
             {
                 DoublyLinkedList lista;
                 for (int i = 0; i < size; ++i) {
                     lista.addBack(testData[i]);
                 }
-                // Warmup - cache heating
-                for (int i = 0; i < warmupOps; ++i) {
-                    lista.addBack(testData[size + (i % operations)]);
-                }
                 auto start = std::chrono::high_resolution_clock::now();
-                for (int i = 0; i < operations; ++i) {
-                    lista.addBack(testData[size + warmupOps + i]);
-                }
+                lista.addBack(testData[size]);
                 auto end = std::chrono::high_resolution_clock::now();
-                sumAddBack += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / operations;
+                sumAddBack += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
             }
 
             {
@@ -771,16 +781,10 @@ void benchmarkListaDwukierunkowa(const std::string& resultsFile) {
                 for (int i = 0; i < size; ++i) {
                     lista.addBack(testData[i]);
                 }
-                // Warmup - cache heating
-                for (int i = 0; i < warmupOps; ++i) {
-                    lista.addFront(testData[size + (i % operations)]);
-                }
                 auto start = std::chrono::high_resolution_clock::now();
-                for (int i = 0; i < operations; ++i) {
-                    lista.addFront(testData[size + warmupOps + i]);
-                }
+                lista.addFront(testData[size]);
                 auto end = std::chrono::high_resolution_clock::now();
-                sumAddFront += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / operations;
+                sumAddFront += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
             }
 
             {
@@ -788,18 +792,10 @@ void benchmarkListaDwukierunkowa(const std::string& resultsFile) {
                 for (int i = 0; i < size; ++i) {
                     lista.addBack(testData[i]);
                 }
-                // Warmup - cache heating
-                for (int i = 0; i < warmupOps; ++i) {
-                    int pos = std::uniform_int_distribution<>(0, size)(rng);
-                    lista.insertAt(pos, testData[size + (i % operations)]);
-                }
                 auto start = std::chrono::high_resolution_clock::now();
-                for (int i = 0; i < operations; ++i) {
-                    int pos = std::uniform_int_distribution<>(0, size)(rng);
-                    lista.insertAt(pos, testData[size + warmupOps + i]);
-                }
+                lista.insertAt(middlePosition, testData[size]);
                 auto end = std::chrono::high_resolution_clock::now();
-                sumInsertAt += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / operations;
+                sumInsertAt += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
             }
 
             {
@@ -807,68 +803,72 @@ void benchmarkListaDwukierunkowa(const std::string& resultsFile) {
                 for (int i = 0; i < size; ++i) {
                     lista.addBack(testData[i]);
                 }
-                // Warmup - cache heating
-                for (int i = 0; i < warmupOps; ++i) {
-                    lista.find(testData[std::uniform_int_distribution<>(0, size - 1)(rng)]);
-                }
                 auto start = std::chrono::high_resolution_clock::now();
-                for (int i = 0; i < operations; ++i) {
-                    lista.find(testData[std::uniform_int_distribution<>(0, size - 1)(rng)]);
-                }
+                lista.find(testData[middlePosition]);
                 auto end = std::chrono::high_resolution_clock::now();
-                sumFind += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / operations;
+                sumFind += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
             }
 
             {
                 DoublyLinkedList lista;
-                for (int i = 0; i < size + operations; ++i) {
+                for (int i = 0; i < size; ++i) {
                     lista.addBack(testData[i]);
                 }
                 auto start = std::chrono::high_resolution_clock::now();
-                for (int i = 0; i < operations; ++i) {
-                    lista.removeBack();
-                }
+                lista.removeBack();
                 auto end = std::chrono::high_resolution_clock::now();
-                sumRemoveBack += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / operations;
+                sumRemoveBack += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
             }
 
             {
                 DoublyLinkedList lista;
-                for (int i = 0; i < size + operations; ++i) {
+                for (int i = 0; i < size; ++i) {
                     lista.addBack(testData[i]);
                 }
                 auto start = std::chrono::high_resolution_clock::now();
-                for (int i = 0; i < operations; ++i) {
-                    lista.removeFront();
-                }
+                lista.removeFront();
                 auto end = std::chrono::high_resolution_clock::now();
-                sumRemoveFront += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / operations;
+                sumRemoveFront += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
             }
 
             {
                 DoublyLinkedList lista;
-                for (int i = 0; i < size + operations; ++i) {
+                for (int i = 0; i < size; ++i) {
                     lista.addBack(testData[i]);
                 }
                 auto start = std::chrono::high_resolution_clock::now();
-                for (int i = 0; i < operations; ++i) {
-                    int pos = std::uniform_int_distribution<>(0, size - 1)(rng);
-                    lista.removeAt(pos);
-                }
+                lista.removeAt(middlePosition);
                 auto end = std::chrono::high_resolution_clock::now();
-                sumRemoveAt += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / operations;
+                sumRemoveAt += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
             }
         }
 
-        file << "addBack," << size << "," << (sumAddBack / attempts) << "\n";
-        file << "addFront," << size << "," << (sumAddFront / attempts) << "\n";
-        file << "insertAt," << size << "," << (sumInsertAt / attempts) << "\n";
-        file << "find," << size << "," << (sumFind / attempts) << "\n";
-        file << "removeBack," << size << "," << (sumRemoveBack / attempts) << "\n";
-        file << "removeFront," << size << "," << (sumRemoveFront / attempts) << "\n";
-        file << "removeAt," << size << "," << (sumRemoveAt / attempts) << "\n";
+        const long long avgAddBack = sumAddBack / kBenchmarkAttempts;
+        const long long avgAddFront = sumAddFront / kBenchmarkAttempts;
+        const long long avgInsertAt = sumInsertAt / kBenchmarkAttempts;
+        const long long avgFind = sumFind / kBenchmarkAttempts;
+        const long long avgRemoveBack = sumRemoveBack / kBenchmarkAttempts;
+        const long long avgRemoveFront = sumRemoveFront / kBenchmarkAttempts;
+        const long long avgRemoveAt = sumRemoveAt / kBenchmarkAttempts;
+
+        file << "addBack," << size << "," << avgAddBack << "\n";
+        file << "addFront," << size << "," << avgAddFront << "\n";
+        file << "insertAt," << size << "," << avgInsertAt << "\n";
+        file << "find," << size << "," << avgFind << "\n";
+        file << "removeBack," << size << "," << avgRemoveBack << "\n";
+        file << "removeFront," << size << "," << avgRemoveFront << "\n";
+        file << "removeAt," << size << "," << avgRemoveAt << "\n";
+
+        appendMeasurement(txtFile, "ListaDwukierunkowa", "addBack", size, avgAddBack);
+        appendMeasurement(txtFile, "ListaDwukierunkowa", "addFront", size, avgAddFront);
+        appendMeasurement(txtFile, "ListaDwukierunkowa", "insertAt", size, avgInsertAt);
+        appendMeasurement(txtFile, "ListaDwukierunkowa", "find", size, avgFind);
+        appendMeasurement(txtFile, "ListaDwukierunkowa", "removeBack", size, avgRemoveBack);
+        appendMeasurement(txtFile, "ListaDwukierunkowa", "removeFront", size, avgRemoveFront);
+        appendMeasurement(txtFile, "ListaDwukierunkowa", "removeAt", size, avgRemoveAt);
     }
 
     file.close();
+    txtFile.close();
 }
 
